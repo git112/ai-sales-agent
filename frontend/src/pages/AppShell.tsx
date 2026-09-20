@@ -3,7 +3,6 @@ import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { api, authStore } from "../api";
 import { useAuth } from "../auth";
 import { t, type Locale } from "../i18n";
-import ThemeToggle from "../ThemeToggle";
 
 const nav = [
   ["Dashboard", "/app/dashboard"],
@@ -17,6 +16,7 @@ const nav = [
   ["Knowledge Base", "/app/knowledge"],
   ["Radar", "/app/radar"],
   ["Analytics", "/app/analytics"],
+  ["Notifications", "/app/notifications"],
   ["Settings", "/app/settings"],
 ];
 
@@ -87,10 +87,13 @@ export default function AppShell() {
             <button className="btn btn-ghost text-xs" onClick={toggleMode}>
               Switch to {mode === "demo" ? "LIVE" : "DEMO"}
             </button>
-            {notes[0] && <span className="text-sm text-gray-500 truncate">{notes[0].title}</span>}
+            {notes[0] && (
+              <Link to="/app/notifications" className="text-sm text-gray-500 truncate">
+                {notes.filter((n) => !n.read).length} new · {notes[0].title}
+              </Link>
+            )}
           </div>
           <div className="flex items-center gap-3 text-sm">
-            <ThemeToggle />
             <Link to="/app/onboarding" className="text-gray-500">
               Onboarding
             </Link>

@@ -27,6 +27,8 @@ import Radar from "./pages/Radar";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import Admin from "./pages/Admin";
+import Docs from "./pages/Docs";
+import Notifications from "./pages/Notifications";
 import Pricing from "./pages/Pricing";
 import Legal from "./pages/Legal";
 
@@ -38,7 +40,8 @@ function Private({ children }: { children: ReactNode }) {
 }
 
 function AdminOnly({ children }: { children: ReactNode }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  if (loading) return <div className="p-10 text-gray-500">Loading…</div>;
   if (user?.role !== "admin") return <Navigate to="/app/dashboard" replace />;
   return <>{children}</>;
 }
@@ -47,6 +50,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
+      <Route path="/docs" element={<Docs />} />
       <Route path="/pricing" element={<Pricing />} />
       <Route path="/privacy" element={<Legal kind="privacy" />} />
       <Route path="/terms" element={<Legal kind="terms" />} />
@@ -83,6 +87,7 @@ export default function App() {
         <Route path="knowledge" element={<Knowledge />} />
         <Route path="radar" element={<Radar />} />
         <Route path="analytics" element={<Analytics />} />
+        <Route path="notifications" element={<Notifications />} />
         <Route path="settings" element={<Settings />} />
       </Route>
       <Route

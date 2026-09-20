@@ -17,7 +17,7 @@ export default function Copilot() {
   return (
     <div className="max-w-3xl">
       <h1 className="text-2xl font-semibold">AI sales copilot</h1>
-      <p className="text-sm text-gray-500">Answers are grounded in workspace JSON. Records are cited. Nothing is invented.</p>
+      <p className="text-sm text-gray-500">Answers are grounded in this workspace’s records. Records are cited. Nothing is invented.</p>
       <div className="flex flex-wrap gap-2 mt-3">
         {samples.map((s) => (
           <button key={s} className="text-xs border rounded-full px-2 py-1" onClick={() => setQ(s)}>

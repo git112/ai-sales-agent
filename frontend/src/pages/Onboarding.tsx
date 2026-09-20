@@ -22,9 +22,40 @@ export default function Onboarding() {
   });
   const [profile, setProfile] = useState<any>(null);
   const [msg, setMsg] = useState("");
+  const [urlErr, setUrlErr] = useState("");
+  const [urlState, setUrlState] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   const set = (k: string, v: string) => setForm({ ...form, [k]: v });
   const split = (s: string) => s.split(",").map((x) => x.trim()).filter(Boolean);
+
+  function validUrl(u: string) {
+    try {
+      const parsed = new URL(u.startsWith("http") ? u : `https://${u}`);
+      return parsed.protocol === "https:" || parsed.hostname === "localhost";
+    } catch {
+      return false;
+    }
+  }
+
+  async function analyzeWebsite() {
+    setUrlErr("");
+    if (!validUrl(form.website)) {
+      setUrlErr("Enter a valid https URL.");
+      setUrlState("error");
+      return;
+    }
+    setUrlState("loading");
+    try {
+      const { data } = await api.post("/business-profile/analyze-url", { url: form.website });
+      setProfile(data);
+      setMsg(data.fetch_status === "ok" ? "Extracted from the public page, then structured." : "Live fetch failed. Showing labeled fallback — nothing invented as live.");
+      setUrlState(data.fetch_status === "failed" && data.label === "Not detected" ? "error" : "success");
+      setStep(5);
+    } catch (e: any) {
+      setUrlErr(e.response?.data?.error?.message || "Could not analyze URL.");
+      setUrlState("error");
+    }
+  }
 
   async function analyze() {
     const payload = {
@@ -46,7 +77,7 @@ export default function Onboarding() {
   return (
     <div className="max-w-3xl">
       <h1 className="text-2xl font-semibold">AI-powered setup</h1>
-      <p className="text-gray-500 text-sm mt-1">Four steps, then structured business understanding you can approve or edit.</p>
+      <p className="text-gray-500 text-sm mt-1">Company URL analysis plus form input. Approve the structured profile before discovery.</p>
       <div className="flex gap-2 mt-4 text-xs">
         {[1, 2, 3, 4, 5].map((n) => (
           <span key={n} className={`px-2 py-1 rounded ${step === n ? "bg-blue-700 text-white" : "bg-gray-200"}`}>
@@ -59,9 +90,14 @@ export default function Onboarding() {
         <div className="card p-6 mt-6 space-y-3">
           <h2 className="font-semibold">Company information</h2>
           {["company_name", "website", "description", "industry", "location"].map((k) => (
-            <input key={k} className="input" value={(form as any)[k]} onChange={(e) => set(k, e.target.value)} placeholder={k} />
+            <input key={k} className="input" value={(form as any)[k]} onChange={(e) => set(k, e.target.value)} placeholder={k.replace("_", " ")} />
           ))}
-          <button className="btn btn-primary" onClick={() => setStep(2)}>
+          {urlErr && <p className="text-sm text-red-600">{urlErr}</p>}
+          <button className="btn btn-ghost" disabled={urlState === "loading"} onClick={analyzeWebsite}>
+            {urlState === "loading" ? "Analyzing website…" : "Analyze website"}
+          </button>
+          {urlState === "success" && <p className="text-sm text-green-700">Website analysis ready.</p>}
+          <button className="btn btn-primary ml-2" onClick={() => setStep(2)}>
             Continue
           </button>
         </div>
@@ -99,9 +135,12 @@ export default function Onboarding() {
       {step === 4 && (
         <div className="card p-6 mt-6 space-y-3">
           <h2 className="font-semibold">Knowledge</h2>
-          <p className="text-sm text-gray-600">Upload PDF, DOCX, or TXT in Knowledge Base. You can also continue with the description above.</p>
+          <p className="text-sm text-gray-600">Upload PDF, DOCX, or TXT in Knowledge Base, or analyze the form plus website.</p>
           <button className="btn btn-ghost" onClick={() => setStep(3)}>
             Back
+          </button>
+          <button className="btn btn-ghost ml-2" disabled={urlState === "loading"} onClick={analyzeWebsite}>
+            {urlState === "loading" ? "Analyzing…" : "Analyze website"}
           </button>
           <button className="btn btn-primary ml-2" onClick={analyze}>
             Analyze with AI
@@ -111,18 +150,25 @@ export default function Onboarding() {
       {step === 5 && profile && (
         <div className="card p-6 mt-6 space-y-3">
           <h2 className="font-semibold">{msg || "Here's what AI understood about your business."}</h2>
-          <textarea className="input h-28" value={profile.company_summary} onChange={(e) => setProfile({ ...profile, company_summary: e.target.value })} />
+          {profile.label && <span className="badge bg-amber-50 text-amber-800">{profile.label}</span>}
+          <p className="text-xs text-gray-500">
+            Fetch: {profile.fetch_status || "form"} {profile.fetch_error ? `· ${profile.fetch_error}` : ""}
+          </p>
+          <textarea className="input h-28" value={profile.company_summary || ""} onChange={(e) => setProfile({ ...profile, company_summary: e.target.value })} />
           <p className="text-sm">
-            <strong>Services:</strong> {(profile.services || []).join(", ")}
+            <strong>Services:</strong> {(profile.services || profile.products_services || []).join(", ") || "Not detected"}
           </p>
           <p className="text-sm">
-            <strong>Technologies:</strong> {(profile.technologies || []).join(", ")}
+            <strong>Technologies:</strong> {(profile.technologies || []).join(", ") || "Not detected"}
           </p>
           <p className="text-sm">
-            <strong>Buying signals:</strong> {(profile.buying_signals || []).join("; ")}
+            <strong>Pain points:</strong> {(profile.likely_pain_points || []).join("; ") || "Not detected"}
+          </p>
+          <p className="text-sm">
+            <strong>Buying signals:</strong> {(profile.buying_signals || profile.likely_buying_signals || []).join("; ") || "Not detected"}
           </p>
           <p className="text-xs text-gray-500">
-            Source: {profile.source} · Confidence {profile.confidence} · AI never fabricates missing fields.
+            Source: {profile.source} · Confidence {profile.confidence} · Missing fields stay Not detected.
           </p>
           <button
             className="btn btn-primary"

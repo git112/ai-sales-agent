@@ -14,6 +14,16 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (r) => r,
+  (err) => {
+    const status = err.response?.status;
+    const message = err.response?.data?.error?.message || err.message || "Request failed";
+    err.userMessage = status ? `${status}: ${message}` : message;
+    return Promise.reject(err);
+  }
+);
+
 export const authStore = {
   token: () => localStorage.getItem(TOKEN_KEY),
   setToken: (t: string) => localStorage.setItem(TOKEN_KEY, t),

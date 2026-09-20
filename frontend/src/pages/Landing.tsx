@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import ThemeToggle from "../ThemeToggle";
 
 const steps = ["Discover", "Understand", "Prioritize", "Enrich", "Call", "Qualify", "Follow Up"];
 
@@ -12,10 +11,10 @@ export default function Landing() {
           Lumina
         </div>
         <div className="flex items-center gap-3">
-          <ThemeToggle />
           <nav className="hidden md:flex gap-5 text-sm text-gray-500 items-center">
             <a href="#how">How it works</a>
             <a href="#features">Features</a>
+            <Link to="/docs">Docs</Link>
             <Link to="/pricing">Pricing</Link>
             <Link to="/login" className="btn btn-ghost">
               Login

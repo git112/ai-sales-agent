@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../auth";
-import ThemeToggle from "../ThemeToggle";
 
 export function Login() {
   const { login } = useAuth();
@@ -32,7 +31,7 @@ export function Login() {
         <button className="btn btn-primary w-full">Login</button>
       </form>
       <p className="text-xs text-gray-500 mt-4">
-        Demo user: demo@example.com · Admin: admin@example.com. Passwords are not stored in the frontend.
+        Demo: demo@example.com / Demo123! · Admin: admin@example.com / Admin123!
       </p>
       <Link to="/forgot-password" className="text-sm text-blue-700 mt-3 inline-block">
         Forgot password
@@ -101,7 +100,6 @@ function AuthCard({ title, children }: { title: string; children: ReactNode }) {
           <Link to="/" className="text-sm text-blue-800 flex items-center">
             <span className="logo-mark">L</span> Lumina
           </Link>
-          <ThemeToggle />
         </div>
         <h1 className="font-display text-3xl mt-3">{title}</h1>
         <div className="mt-6">{children}</div>

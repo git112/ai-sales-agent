@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import ThemeToggle from "../ThemeToggle";
 
 export default function Legal({ kind }: { kind: "privacy" | "terms" }) {
   return (
@@ -9,7 +8,6 @@ export default function Legal({ kind }: { kind: "privacy" | "terms" }) {
           <Link to="/" className="text-sm text-blue-800">
             Back
           </Link>
-          <ThemeToggle />
         </div>
         <h1 className="text-3xl font-semibold mt-4">{kind === "privacy" ? "Privacy" : "Terms"}</h1>
         <p className="text-gray-600 mt-4 text-sm leading-6">

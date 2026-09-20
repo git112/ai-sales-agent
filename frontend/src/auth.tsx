@@ -55,7 +55,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       login: async (email, password) => {
         const { data } = await api.post("/auth/login", { email, password });
         authStore.setToken(data.token);
-        if (data.user.workspace_id) authStore.setWorkspace(data.user.workspace_id);
+        if (data.user.workspace_id) {
+          authStore.setWorkspace(data.user.workspace_id);
+        } else if (data.user.role === "admin") {
+          const { data: workspaces } = await api.get("/workspaces");
+          if (workspaces?.[0]?.id) authStore.setWorkspace(workspaces[0].id);
+        }
         setUser(data.user);
         return data.user;
       },

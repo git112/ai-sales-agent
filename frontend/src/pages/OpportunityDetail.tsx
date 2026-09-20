@@ -29,7 +29,7 @@ export default function OpportunityDetail() {
         <div>
           <div className="flex items-center gap-2">
             <h1 className="font-display text-3xl">{o.title}</h1>
-            <span className="badge bg-amber-50 text-amber-800">DEMO DATA</span>
+            {(data.is_demo || o.is_demo) && <span className="badge bg-amber-50 text-amber-800">DEMO DATA</span>}
           </div>
           <p className="text-gray-600 mt-1">{o.requirement}</p>
         </div>
@@ -176,12 +176,12 @@ export default function OpportunityDetail() {
       {tab === "Next Best Action" && (
         <div className="card p-5">
           <div className="text-xs text-gray-500">ACTION</div>
-          <div className="text-xl font-semibold">{data.next_best_action.action}</div>
+          <div className="text-xl font-semibold">{data.next_best_action?.action || "—"}</div>
           <div className="mt-3 text-sm">
-            <strong>WHY</strong> {data.next_best_action.why}
+            <strong>WHY</strong> {data.next_best_action?.why}
           </div>
           <div className="mt-2 text-sm">
-            <strong>PRIORITY</strong> {data.next_best_action.priority}
+            <strong>PRIORITY</strong> {data.next_best_action?.priority}
           </div>
           <div className="mt-2 text-xs text-gray-500">EVIDENCE must come from transcripts or public signals — never invented.</div>
         </div>

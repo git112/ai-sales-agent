@@ -12,6 +12,9 @@ export default function CampaignNew() {
   const [selected, setSelected] = useState<string[]>(["lead_abc"]);
   const [schedule, setSchedule] = useState("immediate");
   const [tz, setTz] = useState("Asia/Kolkata");
+  const [retry, setRetry] = useState(3);
+  const [quietStart, setQuietStart] = useState("21:00");
+  const [quietEnd, setQuietEnd] = useState("08:00");
   useEffect(() => {
     api.get("/leads").then((r) => setLeads(r.data));
     api.get("/voice-agents").then((r) => {
@@ -39,6 +42,11 @@ export default function CampaignNew() {
         <option value="scheduled">Scheduled</option>
       </select>
       <input className="input" value={tz} onChange={(e) => setTz(e.target.value)} />
+      <input className="input" type="number" value={retry} onChange={(e) => setRetry(+e.target.value)} />
+      <div className="flex gap-2">
+        <input className="input" value={quietStart} onChange={(e) => setQuietStart(e.target.value)} />
+        <input className="input" value={quietEnd} onChange={(e) => setQuietEnd(e.target.value)} />
+      </div>
       <div className="text-sm font-medium">Leads</div>
       {leads.map((l) => (
         <label key={l.id} className="flex gap-2 text-sm">
@@ -50,7 +58,7 @@ export default function CampaignNew() {
           {l.company} {l.phone ? "" : "(no phone — still usable in demo simulation)"}
         </label>
       ))}
-      <p className="text-xs text-gray-500">Retry policy default: 2 attempts on No Answer / Voicemail.</p>
+      <p className="text-xs text-gray-500">DEMO CAMPAIGN SIMULATION — retry sequence No Answer → Voicemail → Interested.</p>
       <button
         className="btn btn-primary"
         onClick={async () => {
@@ -63,7 +71,13 @@ export default function CampaignNew() {
             language: "en",
             schedule,
             timezone: tz,
-            retry_policy: { max_attempts: 2, on: ["No Answer", "Voicemail"] },
+            quiet_hours: { start: quietStart, end: quietEnd },
+            retry_policy: {
+              max_attempts: retry,
+              interval_minutes: 60,
+              on: ["No Answer", "Voicemail"],
+              sequence: ["No Answer", "Voicemail", "Interested"],
+            },
           });
           nav(`/app/campaigns/${data.id}`);
         }}

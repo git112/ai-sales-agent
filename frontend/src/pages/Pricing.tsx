@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import ThemeToggle from "../ThemeToggle";
 
 export default function Pricing() {
   return (
@@ -9,7 +8,6 @@ export default function Pricing() {
           <Link to="/" className="text-sm text-blue-800">
             Lumina
           </Link>
-          <ThemeToggle />
         </div>
         <h1 className="text-3xl font-semibold mt-4">Pricing</h1>
         <p className="text-gray-600 mt-2">Hackathon display only — billing is not implemented.</p>

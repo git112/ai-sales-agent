@@ -20,7 +20,8 @@ export default function CallDetail() {
           <p className="text-sm mt-1">{call.voicemail_message}</p>
         </div>
       )}
-      {call.stop_reason && <p className="text-sm">Stopped: {call.stop_reason}</p>}
+      {call.retry_eligible && <p className="text-sm">Retry eligible — DEMO CAMPAIGN SIMULATION</p>}
+      {call.escalated && <p className="text-sm">Handoff: {call.handoff_reason} · {call.escalated_at}</p>}
       {qualification?.high_intent && <div className="badge bg-red-50 text-red-700">HIGH INTENT PROSPECT</div>}
       <div className="card p-4">
         <h2 className="font-semibold">Summary</h2>

@@ -18,6 +18,15 @@ export default function Leads() {
     setRows(data);
     setPipe((await api.get("/leads/pipeline")).data);
   }
+  async function download(format: string) {
+    const res = await api.get("/leads/export", { params: { format, q, stage }, responseType: "blob" });
+    const url = URL.createObjectURL(res.data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = format === "xlsx" ? "leads.xlsx" : "leads.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
   useEffect(() => {
     load();
   }, []);
@@ -33,6 +42,12 @@ export default function Leads() {
           <Link className="btn btn-ghost" to="/app/leads/segments">
             Segments
           </Link>
+          <button className="btn btn-ghost" onClick={() => download("csv")}>
+            Export CSV
+          </button>
+          <button className="btn btn-ghost" onClick={() => download("xlsx")}>
+            Export Excel
+          </button>
         </div>
       </div>
       <div className="flex gap-2 mt-4">
