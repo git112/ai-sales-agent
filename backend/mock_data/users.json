@@ -1,0 +1,22 @@
+[
+  {
+    "id": "user_001",
+    "name": "Aisha Patel",
+    "email": "demo@example.com",
+    "password_hash": "$2b$12$gNJeQGakZES6NGR0tbT8MOl4Fk3KBwCqo5ToskH0QvdmPC9li7Srm",
+    "role": "user",
+    "locale": "en",
+    "workspace_id": "workspace_001",
+    "created_at": "2026-09-01T10:00:00Z"
+  },
+  {
+    "id": "admin_001",
+    "name": "Demo Admin",
+    "email": "admin@example.com",
+    "password_hash": "$2b$12$ZNeHh/7ZFA5ektB4Or648Oyuq7S.p8mH5zMqFjbEfFd7lmM1xE8MC",
+    "role": "admin",
+    "locale": "en",
+    "workspace_id": null,
+    "created_at": "2026-09-01T10:00:00Z"
+  }
+]

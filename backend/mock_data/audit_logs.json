@@ -1,0 +1,376 @@
+[
+  {
+    "id": "audit_001",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "seed",
+    "entity": "workspace",
+    "entity_id": "workspace_001",
+    "meta": {
+      "note": "Initial demo seed"
+    },
+    "created_at": "2026-09-01T10:05:00Z"
+  },
+  {
+    "id": "audit_635482309e",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "user_001",
+    "meta": {},
+    "created_at": "2026-09-20T07:39:48Z"
+  },
+  {
+    "id": "audit_6fb8a353c7",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "search_opportunities",
+    "entity": "opportunity",
+    "entity_id": null,
+    "meta": {
+      "query": "Find companies looking for SharePoint implementation"
+    },
+    "created_at": "2026-09-20T07:39:48Z"
+  },
+  {
+    "id": "audit_1d302cbe51",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "user_001",
+    "meta": {},
+    "created_at": "2026-09-20T07:40:08Z"
+  },
+  {
+    "id": "audit_68d8d43c90",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "create_campaign",
+    "entity": "campaign",
+    "entity_id": "camp_f6fd222aa2",
+    "meta": {},
+    "created_at": "2026-09-20T07:40:08Z"
+  },
+  {
+    "id": "audit_19beec6096",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "launch_campaign",
+    "entity": "campaign",
+    "entity_id": "camp_f6fd222aa2",
+    "meta": {},
+    "created_at": "2026-09-20T07:40:08Z"
+  },
+  {
+    "id": "audit_7e09c800ac",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "simulate_call",
+    "entity": "call",
+    "entity_id": "call_bafc3be78d",
+    "meta": {},
+    "created_at": "2026-09-20T07:40:08Z"
+  },
+  {
+    "id": "audit_6cbae106c5",
+    "workspace_id": null,
+    "actor_user_id": "admin_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "admin_001",
+    "meta": {},
+    "created_at": "2026-09-20T07:41:58Z"
+  },
+  {
+    "id": "audit_f83d6624f9",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "user_001",
+    "meta": {},
+    "created_at": "2026-09-20T07:46:05Z"
+  },
+  {
+    "id": "audit_62da693375",
+    "workspace_id": null,
+    "actor_user_id": "admin_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "admin_001",
+    "meta": {},
+    "created_at": "2026-09-20T07:46:08Z"
+  },
+  {
+    "id": "audit_a881df7b6f",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "search_opportunities",
+    "entity": "opportunity",
+    "entity_id": null,
+    "meta": {
+      "query": "Find companies looking for SharePoint implementation"
+    },
+    "created_at": "2026-09-20T07:46:08Z"
+  },
+  {
+    "id": "audit_a272fc1c71",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "analyze_opportunity",
+    "entity": "opportunity",
+    "entity_id": "opp_abc",
+    "meta": {},
+    "created_at": "2026-09-20T07:46:08Z"
+  },
+  {
+    "id": "audit_d72e421685",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "create_campaign",
+    "entity": "campaign",
+    "entity_id": "camp_33739c94fd",
+    "meta": {},
+    "created_at": "2026-09-20T07:46:08Z"
+  },
+  {
+    "id": "audit_2c50bdef4a",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "launch_campaign",
+    "entity": "campaign",
+    "entity_id": "camp_33739c94fd",
+    "meta": {},
+    "created_at": "2026-09-20T07:46:08Z"
+  },
+  {
+    "id": "audit_0869f1ddda",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "simulate_call",
+    "entity": "call",
+    "entity_id": "call_da1d90d1c1",
+    "meta": {},
+    "created_at": "2026-09-20T07:46:08Z"
+  },
+  {
+    "id": "audit_92ebcfd310",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "user_001",
+    "meta": {},
+    "created_at": "2026-09-20T07:47:01Z"
+  },
+  {
+    "id": "audit_5c074fe123",
+    "workspace_id": null,
+    "actor_user_id": "admin_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "admin_001",
+    "meta": {},
+    "created_at": "2026-09-20T07:47:02Z"
+  },
+  {
+    "id": "audit_db710b5c69",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "search_opportunities",
+    "entity": "opportunity",
+    "entity_id": null,
+    "meta": {
+      "query": "Find companies looking for SharePoint implementation"
+    },
+    "created_at": "2026-09-20T07:47:02Z"
+  },
+  {
+    "id": "audit_492aeab295",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "analyze_opportunity",
+    "entity": "opportunity",
+    "entity_id": "opp_abc",
+    "meta": {},
+    "created_at": "2026-09-20T07:47:02Z"
+  },
+  {
+    "id": "audit_b4e1bb2c22",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "create_campaign",
+    "entity": "campaign",
+    "entity_id": "camp_52e0cd6b44",
+    "meta": {},
+    "created_at": "2026-09-20T07:47:02Z"
+  },
+  {
+    "id": "audit_6065896dd1",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "launch_campaign",
+    "entity": "campaign",
+    "entity_id": "camp_52e0cd6b44",
+    "meta": {},
+    "created_at": "2026-09-20T07:47:02Z"
+  },
+  {
+    "id": "audit_bf7ba3b92b",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "simulate_call",
+    "entity": "call",
+    "entity_id": "call_76f3e22da2",
+    "meta": {},
+    "created_at": "2026-09-20T07:47:02Z"
+  },
+  {
+    "id": "audit_e3680c77e7",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "user_001",
+    "meta": {},
+    "created_at": "2026-09-20T07:48:59Z"
+  },
+  {
+    "id": "audit_d2f253ce24",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "user_001",
+    "meta": {},
+    "created_at": "2026-09-20T07:49:19Z"
+  },
+  {
+    "id": "audit_df22a89cde",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "create_agent",
+    "entity": "voice_agent",
+    "entity_id": "agent_6eb828e0af",
+    "meta": {},
+    "created_at": "2026-09-20T07:50:10Z"
+  },
+  {
+    "id": "audit_7af4b648fe",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "search_opportunities",
+    "entity": "opportunity",
+    "entity_id": null,
+    "meta": {
+      "query": "Find companies looking for power implementation."
+    },
+    "created_at": "2026-09-20T07:50:30Z"
+  },
+  {
+    "id": "audit_0cb65293d3",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "delete_knowledge",
+    "entity": "knowledge_document",
+    "entity_id": "doc_001",
+    "meta": {},
+    "created_at": "2026-09-20T07:51:13Z"
+  },
+  {
+    "id": "audit_2e90332d61",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "create_campaign",
+    "entity": "campaign",
+    "entity_id": "camp_a6e4c3e92a",
+    "meta": {},
+    "created_at": "2026-09-20T07:51:26Z"
+  },
+  {
+    "id": "audit_5a1084192c",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "launch_campaign",
+    "entity": "campaign",
+    "entity_id": "camp_a6e4c3e92a",
+    "meta": {},
+    "created_at": "2026-09-20T07:51:26Z"
+  },
+  {
+    "id": "audit_0e5fb75992",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "simulate_call",
+    "entity": "call",
+    "entity_id": "call_ba68fcf015",
+    "meta": {},
+    "created_at": "2026-09-20T07:51:28Z"
+  },
+  {
+    "id": "audit_6fc5bef9cc",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "analyze_business",
+    "entity": "business_profile",
+    "entity_id": "profile_001",
+    "meta": {},
+    "created_at": "2026-09-20T07:51:53Z"
+  },
+  {
+    "id": "audit_b16767f8c1",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "approve_profile",
+    "entity": "business_profile",
+    "entity_id": "profile_001",
+    "meta": {},
+    "created_at": "2026-09-20T07:51:56Z"
+  },
+  {
+    "id": "audit_53d1e49593",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "set_mode",
+    "entity": "workspace",
+    "entity_id": "workspace_001",
+    "meta": {
+      "mode": "live"
+    },
+    "created_at": "2026-09-20T07:52:02Z"
+  },
+  {
+    "id": "audit_e13ed664f9",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "set_mode",
+    "entity": "workspace",
+    "entity_id": "workspace_001",
+    "meta": {
+      "mode": "demo"
+    },
+    "created_at": "2026-09-20T07:52:08Z"
+  },
+  {
+    "id": "audit_af1e4c84d7",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "logout",
+    "entity": "user",
+    "entity_id": "user_001",
+    "meta": {},
+    "created_at": "2026-09-20T07:52:19Z"
+  },
+  {
+    "id": "audit_d24dc82ced",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "user_001",
+    "meta": {},
+    "created_at": "2026-09-20T07:55:41Z"
+  }
+]

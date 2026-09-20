@@ -1,0 +1,114 @@
+[
+  {
+    "id": "camp_f6fd222aa2",
+    "workspace_id": "workspace_001",
+    "name": "Demo qualify",
+    "campaign_type": "leads_plus_calling",
+    "objective": "q",
+    "agent_id": "agent_001",
+    "lead_ids": [
+      "lead_abc"
+    ],
+    "qualification_questions": [],
+    "language": "en",
+    "schedule": "immediate",
+    "scheduled_at": null,
+    "timezone": "Asia/Kolkata",
+    "retry_policy": {
+      "max_attempts": 2,
+      "on": [
+        "No Answer",
+        "Voicemail"
+      ]
+    },
+    "status": "running",
+    "is_demo": true,
+    "created_at": "2026-09-20T07:40:08Z",
+    "launched_at": "2026-09-20T07:40:08Z",
+    "mode": "demo"
+  },
+  {
+    "id": "camp_33739c94fd",
+    "workspace_id": "workspace_001",
+    "name": "Audit campaign",
+    "campaign_type": "leads_plus_calling",
+    "objective": "q",
+    "agent_id": "agent_001",
+    "lead_ids": [
+      "lead_abc"
+    ],
+    "qualification_questions": [],
+    "language": "en",
+    "schedule": "immediate",
+    "scheduled_at": null,
+    "timezone": "Asia/Kolkata",
+    "retry_policy": {
+      "max_attempts": 2,
+      "on": [
+        "No Answer",
+        "Voicemail"
+      ]
+    },
+    "status": "running",
+    "is_demo": true,
+    "created_at": "2026-09-20T07:46:08Z",
+    "launched_at": "2026-09-20T07:46:08Z",
+    "mode": "demo"
+  },
+  {
+    "id": "camp_52e0cd6b44",
+    "workspace_id": "workspace_001",
+    "name": "Audit campaign",
+    "campaign_type": "leads_plus_calling",
+    "objective": "q",
+    "agent_id": "agent_001",
+    "lead_ids": [
+      "lead_abc"
+    ],
+    "qualification_questions": [],
+    "language": "en",
+    "schedule": "immediate",
+    "scheduled_at": null,
+    "timezone": "Asia/Kolkata",
+    "retry_policy": {
+      "max_attempts": 2,
+      "on": [
+        "No Answer",
+        "Voicemail"
+      ]
+    },
+    "status": "running",
+    "is_demo": true,
+    "created_at": "2026-09-20T07:47:02Z",
+    "launched_at": "2026-09-20T07:47:02Z",
+    "mode": "demo"
+  },
+  {
+    "id": "camp_a6e4c3e92a",
+    "workspace_id": "workspace_001",
+    "name": "Qualify ABC Technologies",
+    "campaign_type": "leads_plus_calling",
+    "objective": "Qualify SharePoint interest",
+    "agent_id": "agent_001",
+    "lead_ids": [
+      "lead_abc"
+    ],
+    "qualification_questions": [],
+    "language": "en",
+    "schedule": "immediate",
+    "scheduled_at": null,
+    "timezone": "Asia/Kolkata",
+    "retry_policy": {
+      "max_attempts": 2,
+      "on": [
+        "No Answer",
+        "Voicemail"
+      ]
+    },
+    "status": "running",
+    "is_demo": true,
+    "created_at": "2026-09-20T07:51:26Z",
+    "launched_at": "2026-09-20T07:51:26Z",
+    "mode": "demo"
+  }
+]

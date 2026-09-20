@@ -1,0 +1,155 @@
+[
+  {
+    "id": "opp_abc",
+    "workspace_id": "workspace_001",
+    "company_id": "company_abc",
+    "lead_id": "lead_abc",
+    "title": "SharePoint implementation partner search",
+    "requirement": "Looking for a SharePoint implementation partner.",
+    "need": "SharePoint Online intranet, document management, and migration support for ~400 users.",
+    "technology": [
+      "SharePoint Online",
+      "Microsoft 365"
+    ],
+    "industry": "Information technology",
+    "location": "Pune, India",
+    "timeline": "Wants to start this month (stated in demo call script; requirement is 3 days old).",
+    "budget": null,
+    "budget_note": "Budget not published. Insufficient evidence.",
+    "source": "Demo Source",
+    "source_url": "https://example.com/demo/abc-sharepoint-requirement",
+    "published_at": "2026-09-17T09:00:00Z",
+    "discovered_at": "2026-09-18T11:20:00Z",
+    "status": "reviewed",
+    "is_demo": true,
+    "contact_id": "contact_abc_1",
+    "signal_ids": [
+      "sig_abc_req",
+      "sig_abc_hire",
+      "sig_abc_tech",
+      "sig_abc_exp"
+    ],
+    "score": {
+      "label": "AI Opportunity Score",
+      "total": 92,
+      "service_match": 95,
+      "intent_score": 92,
+      "freshness_score": 90,
+      "technology_match": 94,
+      "company_fit": 85,
+      "disclaimer": "Explainable heuristic, not a scientifically precise ranking."
+    },
+    "why_match": "The prospect is actively seeking SharePoint implementation support, which directly matches your SharePoint consulting service.",
+    "why_now": "The requirement was published recently and the company is also hiring for related technical roles.",
+    "risks": [
+      "Budget not disclosed in public materials.",
+      "Internal IT team may reduce scope for a full managed service."
+    ],
+    "missing_information": [
+      "Budget range",
+      "Exact farm/online topology",
+      "Decision committee"
+    ],
+    "recommended_action": "Qualify via AI voice campaign, then schedule human follow-up if intent is high.",
+    "analyzed_at": "2026-09-20T07:47:02Z"
+  },
+  {
+    "id": "opp_helix",
+    "workspace_id": "workspace_001",
+    "company_id": "company_helix",
+    "lead_id": "lead_helix",
+    "title": "Intranet modernization evaluation",
+    "requirement": "Evaluating intranet platforms including SharePoint.",
+    "need": "Replace file shares with a governed intranet.",
+    "technology": [
+      "SharePoint (evaluating)"
+    ],
+    "industry": "Manufacturing",
+    "location": "Chennai, India",
+    "timeline": "Not stated.",
+    "budget": null,
+    "budget_note": "Insufficient evidence.",
+    "source": "Demo Source",
+    "source_url": "https://example.com/demo/helix-intranet",
+    "published_at": "2026-09-11T09:00:00Z",
+    "discovered_at": "2026-09-12T10:00:00Z",
+    "status": "discovered",
+    "is_demo": true,
+    "contact_id": null,
+    "signal_ids": [
+      "sig_helix_req"
+    ],
+    "score": {
+      "label": "AI Opportunity Score",
+      "total": 74,
+      "service_match": 82,
+      "intent_score": 70,
+      "freshness_score": 68,
+      "technology_match": 76,
+      "company_fit": 72,
+      "disclaimer": "Explainable heuristic, not a scientifically precise ranking."
+    },
+    "why_match": "Helix is evaluating intranet platforms including SharePoint, which overlaps your SharePoint implementation service.",
+    "why_now": "A public evaluation note was published in the last 10 days. No hiring or funding signal is attached.",
+    "risks": [
+      "Platform choice is not committed.",
+      "No public contact."
+    ],
+    "missing_information": [
+      "Contact",
+      "Timeline",
+      "Budget",
+      "Selected platform"
+    ],
+    "recommended_action": "Enrich for a public contact. Do not claim urgency beyond the published evaluation note.",
+    "analyzed_at": "2026-09-12T11:00:00Z"
+  },
+  {
+    "id": "opp_orbit",
+    "workspace_id": "workspace_001",
+    "company_id": "company_orbit",
+    "lead_id": "lead_orbit",
+    "title": "Microsoft 365 governance exploration",
+    "requirement": "Exploring Microsoft 365 governance for regulated collaboration.",
+    "need": "Governance and information architecture, not a confirmed implementation RFP.",
+    "technology": [
+      "Microsoft 365"
+    ],
+    "industry": "BFSI",
+    "location": "Mumbai, India",
+    "timeline": "Not stated.",
+    "budget": null,
+    "budget_note": "Insufficient evidence.",
+    "source": "Demo Source",
+    "source_url": "https://example.com/demo/orbit-governance",
+    "published_at": "2026-08-28T09:00:00Z",
+    "discovered_at": "2026-09-08T10:00:00Z",
+    "status": "discovered",
+    "is_demo": true,
+    "contact_id": null,
+    "signal_ids": [],
+    "score": {
+      "label": "AI Opportunity Score",
+      "total": 58,
+      "service_match": 70,
+      "intent_score": 48,
+      "freshness_score": 40,
+      "technology_match": 80,
+      "company_fit": 65,
+      "disclaimer": "Explainable heuristic, not a scientifically precise ranking."
+    },
+    "why_match": "Orbit uses Microsoft 365, which matches your M365 consulting services. There is no explicit SharePoint implementation request.",
+    "why_now": "No strong why-now signal detected.",
+    "risks": [
+      "Regulated industry may require lengthy procurement.",
+      "Signal is older than 14 days."
+    ],
+    "missing_information": [
+      "Requirement specifics",
+      "Contact",
+      "Timeline"
+    ],
+    "recommended_action": "Watch via saved search. Do not prioritize over ABC Technologies.",
+    "analyzed_at": "2026-09-08T11:00:00Z"
+  }
+]

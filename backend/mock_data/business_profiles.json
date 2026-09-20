@@ -1,0 +1,55 @@
+[
+  {
+    "id": "profile_001",
+    "workspace_id": "workspace_001",
+    "approved": true,
+    "is_demo": true,
+    "company_name": "Northwind Digital",
+    "website": "https://example.com/northwind-digital",
+    "industry": "IT consulting",
+    "location": "Ahmedabad, India",
+    "description": "Microsoft 365 and SharePoint consulting: implementation, migration, integration, custom development, enterprise document management.",
+    "company_summary": "Microsoft 365 and SharePoint consulting: implementation, migration, integration, custom development, enterprise document management.",
+    "services": [
+      "SharePoint implementation",
+      "SharePoint migration",
+      "Microsoft 365 consulting",
+      "Enterprise document management",
+      "Microsoft 365 integration",
+      "SharePoint customization"
+    ],
+    "products": [
+      "Delivery accelerators"
+    ],
+    "technologies": [
+      "SharePoint",
+      "Microsoft 365"
+    ],
+    "industries": [
+      "Technology",
+      "Manufacturing",
+      "BFSI"
+    ],
+    "target_customers": [],
+    "target_roles": [
+      "CIO",
+      "IT Director",
+      "SharePoint Admin"
+    ],
+    "locations": [
+      "India",
+      "UAE"
+    ],
+    "keywords": [
+      "SharePoint implementation",
+      "migration"
+    ],
+    "buying_signals": [
+      "Posted SharePoint implementation or migration requirements",
+      "Hiring SharePoint / Microsoft 365 engineers"
+    ],
+    "source": "Onboarding form + knowledge documents",
+    "confidence": 0.8,
+    "last_updated": "2026-09-20T07:51:56Z"
+  }
+]

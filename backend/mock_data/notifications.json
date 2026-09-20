@@ -1,0 +1,82 @@
+[
+  {
+    "id": "ntf_001",
+    "workspace_id": "workspace_001",
+    "type": "radar",
+    "title": "New high-intent opportunity detected",
+    "body": "ABC Technologies matched saved search “SharePoint opportunities in India” because the requirement mentions SharePoint implementation in India.",
+    "opportunity_id": "opp_abc",
+    "saved_search_id": "search_001",
+    "read": false,
+    "is_demo": true,
+    "created_at": "2026-09-18T11:25:00Z"
+  },
+  {
+    "id": "ntf_63e33a3fd8",
+    "workspace_id": "workspace_001",
+    "type": "high_intent",
+    "title": "HIGH INTENT PROSPECT",
+    "body": "We are looking for SharePoint migration support and want to start this month.",
+    "opportunity_id": "opp_abc",
+    "read": false,
+    "is_demo": true,
+    "created_at": "2026-09-20T07:40:08Z"
+  },
+  {
+    "id": "ntf_e6450767f3",
+    "workspace_id": "workspace_001",
+    "type": "high_intent",
+    "title": "HIGH INTENT PROSPECT",
+    "body": "We are looking for SharePoint migration support and want to start this month.",
+    "opportunity_id": "opp_abc",
+    "read": false,
+    "is_demo": true,
+    "created_at": "2026-09-20T07:46:08Z"
+  },
+  {
+    "id": "ntf_ba118aae98",
+    "workspace_id": "workspace_001",
+    "type": "radar",
+    "title": "New high-intent opportunity detected",
+    "body": "SharePoint implementation partner search matched “SharePoint opportunities in India”. DEMO DATA.",
+    "opportunity_id": "opp_abc",
+    "saved_search_id": "search_001",
+    "read": false,
+    "is_demo": true,
+    "created_at": "2026-09-20T07:46:08Z"
+  },
+  {
+    "id": "ntf_610d2e397f",
+    "workspace_id": "workspace_001",
+    "type": "high_intent",
+    "title": "HIGH INTENT PROSPECT",
+    "body": "We are looking for SharePoint migration support and want to start this month.",
+    "opportunity_id": "opp_abc",
+    "read": false,
+    "is_demo": true,
+    "created_at": "2026-09-20T07:47:02Z"
+  },
+  {
+    "id": "ntf_5ee1b7d463",
+    "workspace_id": "workspace_001",
+    "type": "radar",
+    "title": "New high-intent opportunity detected",
+    "body": "SharePoint implementation partner search matched “SharePoint opportunities in India”. DEMO DATA.",
+    "opportunity_id": "opp_abc",
+    "saved_search_id": "search_001",
+    "read": false,
+    "is_demo": true,
+    "created_at": "2026-09-20T07:47:02Z"
+  },
+  {
+    "id": "ntf_3df8623f1d",
+    "workspace_id": "workspace_001",
+    "type": "high_intent",
+    "title": "HIGH INTENT PROSPECT",
+    "body": "We are looking for SharePoint migration support and want to start this month.",
+    "opportunity_id": "opp_abc",
+    "read": false,
+    "is_demo": true,
+    "created_at": "2026-09-20T07:51:28Z"
+  }
+]

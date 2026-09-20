@@ -1,0 +1,122 @@
+[
+  {
+    "id": "sig_abc_req",
+    "workspace_id": "workspace_001",
+    "source": "Demo Source",
+    "source_url": "https://example.com/demo/abc-sharepoint-requirement",
+    "title": "Looking for a SharePoint implementation partner",
+    "description": "ABC Technologies is seeking a partner for SharePoint Online implementation, intranet rollout, and document management for ~400 employees. Published as a public partner requirement.",
+    "company": "ABC Technologies",
+    "company_id": "company_abc",
+    "company_url": "https://example.com/abc-technologies",
+    "location": "Pune, India",
+    "published_at": "2026-09-17T09:00:00Z",
+    "discovered_at": "2026-09-18T11:20:00Z",
+    "signal_type": "Requirement",
+    "evidence": [
+      {
+        "quote": "Looking for a SharePoint implementation partner for intranet and document management.",
+        "source_url": "https://example.com/demo/abc-sharepoint-requirement",
+        "date": "2026-09-17"
+      }
+    ],
+    "confidence": 0.93,
+    "is_demo": true
+  },
+  {
+    "id": "sig_abc_hire",
+    "workspace_id": "workspace_001",
+    "source": "Demo Source",
+    "source_url": "https://example.com/demo/abc-sharepoint-admin-job",
+    "title": "Hiring SharePoint Administrator",
+    "description": "ABC Technologies posted a SharePoint Administrator role covering site collection, permissions, and migration support.",
+    "company": "ABC Technologies",
+    "company_id": "company_abc",
+    "company_url": "https://example.com/abc-technologies",
+    "location": "Pune, India",
+    "published_at": "2026-09-16T09:00:00Z",
+    "discovered_at": "2026-09-18T11:21:00Z",
+    "signal_type": "Hiring",
+    "evidence": [
+      {
+        "quote": "Role includes SharePoint Online administration and migration support.",
+        "source_url": "https://example.com/demo/abc-sharepoint-admin-job",
+        "date": "2026-09-16"
+      }
+    ],
+    "confidence": 0.88,
+    "is_demo": true
+  },
+  {
+    "id": "sig_abc_tech",
+    "workspace_id": "workspace_001",
+    "source": "Demo Source",
+    "source_url": "https://example.com/demo/abc-m365-stack",
+    "title": "Microsoft 365 technology signal",
+    "description": "Public careers and IT pages reference Microsoft 365 and SharePoint Online as current workplace platforms.",
+    "company": "ABC Technologies",
+    "company_id": "company_abc",
+    "company_url": "https://example.com/abc-technologies",
+    "location": "Pune, India",
+    "published_at": "2026-09-10T09:00:00Z",
+    "discovered_at": "2026-09-18T11:22:00Z",
+    "signal_type": "Technology signal",
+    "evidence": [
+      {
+        "quote": "Internal collaboration on Microsoft 365 and SharePoint Online.",
+        "source_url": "https://example.com/demo/abc-m365-stack",
+        "date": "2026-09-10"
+      }
+    ],
+    "confidence": 0.8,
+    "is_demo": true
+  },
+  {
+    "id": "sig_abc_exp",
+    "workspace_id": "workspace_001",
+    "source": "Demo Source",
+    "source_url": "https://example.com/demo/abc-expansion",
+    "title": "Company expansion announcement",
+    "description": "ABC Technologies announced a Pune delivery-center expansion and headcount growth in Q3.",
+    "company": "ABC Technologies",
+    "company_id": "company_abc",
+    "company_url": "https://example.com/abc-technologies",
+    "location": "Pune, India",
+    "published_at": "2026-09-05T09:00:00Z",
+    "discovered_at": "2026-09-18T11:23:00Z",
+    "signal_type": "Business announcement",
+    "evidence": [
+      {
+        "quote": "Expanding the Pune delivery center and hiring across engineering and IT.",
+        "source_url": "https://example.com/demo/abc-expansion",
+        "date": "2026-09-05"
+      }
+    ],
+    "confidence": 0.77,
+    "is_demo": true
+  },
+  {
+    "id": "sig_helix_req",
+    "workspace_id": "workspace_001",
+    "source": "Demo Source",
+    "source_url": "https://example.com/demo/helix-intranet",
+    "title": "Intranet modernization RFP interest",
+    "description": "Helix Manufacturing published interest in replacing file shares with a modern intranet.",
+    "company": "Helix Manufacturing",
+    "company_id": "company_helix",
+    "company_url": "https://example.com/helix-mfg",
+    "location": "Chennai, India",
+    "published_at": "2026-09-11T09:00:00Z",
+    "discovered_at": "2026-09-12T10:00:00Z",
+    "signal_type": "RFP",
+    "evidence": [
+      {
+        "quote": "Evaluating intranet platforms including SharePoint.",
+        "source_url": "https://example.com/demo/helix-intranet",
+        "date": "2026-09-11"
+      }
+    ],
+    "confidence": 0.72,
+    "is_demo": true
+  }
+]

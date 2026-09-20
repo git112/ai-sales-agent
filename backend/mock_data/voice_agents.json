@@ -1,0 +1,67 @@
+[
+  {
+    "id": "agent_001",
+    "workspace_id": "workspace_001",
+    "name": "SharePoint Sales Agent",
+    "purpose": "Qualify companies interested in SharePoint implementation.",
+    "language": "en",
+    "voice": "professional_female",
+    "tone": "consultative",
+    "knowledge_doc_ids": [
+      "doc_001"
+    ],
+    "call_objective": "Confirm requirement, timeline, technology, and whether they want a specialist follow-up.",
+    "qualification_questions": [
+      "What service are you looking for?",
+      "What is your timeline?",
+      "What technology are you using?",
+      "What is your approximate budget?",
+      "Would you like a demo or a meeting with a specialist?"
+    ],
+    "safety": {
+      "disclose_ai": true,
+      "handoff_phrases": [
+        "speak to a human",
+        "transfer me",
+        "call me back with a person"
+      ],
+      "opt_out_phrases": [
+        "do not call",
+        "remove me",
+        "not interested in calls"
+      ]
+    },
+    "approved_voicemail": "Hello, this is an AI assistant calling on behalf of Northwind Digital about SharePoint implementation. Please call us back if you would like to speak with a specialist. Thank you.",
+    "is_demo": true,
+    "created_at": "2026-09-10T12:00:00Z"
+  },
+  {
+    "id": "agent_6eb828e0af",
+    "workspace_id": "workspace_001",
+    "name": "SharePoint Sales Agent",
+    "purpose": "Qualify companies interested in SharePoint implementation.",
+    "language": "en",
+    "voice": "professional_female",
+    "tone": "consultative",
+    "knowledge_doc_ids": [
+      "doc_001"
+    ],
+    "call_objective": "Qualify need, timeline, and meeting interest.",
+    "qualification_questions": [
+      "What service are you looking for?",
+      "What is your timeline?"
+    ],
+    "safety": {
+      "disclose_ai": true,
+      "handoff_phrases": [
+        "speak to a human"
+      ],
+      "opt_out_phrases": [
+        "do not call"
+      ]
+    },
+    "approved_voicemail": "Hello, this is an AI assistant. Please call us back. Thank you.",
+    "is_demo": true,
+    "created_at": "2026-09-20T07:50:10Z"
+  }
+]

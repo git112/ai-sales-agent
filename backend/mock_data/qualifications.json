@@ -1,0 +1,102 @@
+[
+  {
+    "id": "qual_2cf0a85b63",
+    "workspace_id": "workspace_001",
+    "call_id": "call_bafc3be78d",
+    "lead_id": "lead_abc",
+    "opportunity_id": "opp_abc",
+    "interest_level": "Interested",
+    "requirements": "SharePoint migration support",
+    "timeline": "this month",
+    "budget": null,
+    "technology": "SharePoint",
+    "decision_stage": "active requirement",
+    "missing_information": [],
+    "evidence": [
+      {
+        "quote": "We are looking for SharePoint migration support and want to start this month.",
+        "source": "Demo Voice Simulation"
+      }
+    ],
+    "high_intent": true,
+    "banner": "HIGH INTENT PROSPECT",
+    "banner_reason": "We are looking for SharePoint migration support and want to start this month.",
+    "created_at": "2026-09-20T07:40:08Z",
+    "is_demo": true
+  },
+  {
+    "id": "qual_af5a433f42",
+    "workspace_id": "workspace_001",
+    "call_id": "call_da1d90d1c1",
+    "lead_id": "lead_abc",
+    "opportunity_id": "opp_abc",
+    "interest_level": "Interested",
+    "requirements": "SharePoint migration support",
+    "timeline": "this month",
+    "budget": null,
+    "technology": "SharePoint",
+    "decision_stage": "active requirement",
+    "missing_information": [],
+    "evidence": [
+      {
+        "quote": "We are looking for SharePoint migration support and want to start this month.",
+        "source": "Demo Voice Simulation"
+      }
+    ],
+    "high_intent": true,
+    "banner": "HIGH INTENT PROSPECT",
+    "banner_reason": "We are looking for SharePoint migration support and want to start this month.",
+    "created_at": "2026-09-20T07:46:08Z",
+    "is_demo": true
+  },
+  {
+    "id": "qual_7c08566c83",
+    "workspace_id": "workspace_001",
+    "call_id": "call_76f3e22da2",
+    "lead_id": "lead_abc",
+    "opportunity_id": "opp_abc",
+    "interest_level": "Interested",
+    "requirements": "SharePoint migration support",
+    "timeline": "this month",
+    "budget": null,
+    "technology": "SharePoint",
+    "decision_stage": "active requirement",
+    "missing_information": [],
+    "evidence": [
+      {
+        "quote": "We are looking for SharePoint migration support and want to start this month.",
+        "source": "Demo Voice Simulation"
+      }
+    ],
+    "high_intent": true,
+    "banner": "HIGH INTENT PROSPECT",
+    "banner_reason": "We are looking for SharePoint migration support and want to start this month.",
+    "created_at": "2026-09-20T07:47:02Z",
+    "is_demo": true
+  },
+  {
+    "id": "qual_ac0e049684",
+    "workspace_id": "workspace_001",
+    "call_id": "call_ba68fcf015",
+    "lead_id": "lead_abc",
+    "opportunity_id": "opp_abc",
+    "interest_level": "Interested",
+    "requirements": "SharePoint migration support",
+    "timeline": "this month",
+    "budget": null,
+    "technology": "SharePoint",
+    "decision_stage": "active requirement",
+    "missing_information": [],
+    "evidence": [
+      {
+        "quote": "We are looking for SharePoint migration support and want to start this month.",
+        "source": "Demo Voice Simulation"
+      }
+    ],
+    "high_intent": true,
+    "banner": "HIGH INTENT PROSPECT",
+    "banner_reason": "We are looking for SharePoint migration support and want to start this month.",
+    "created_at": "2026-09-20T07:51:28Z",
+    "is_demo": true
+  }
+]

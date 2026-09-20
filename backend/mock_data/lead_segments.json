@@ -1,0 +1,18 @@
+[
+  {
+    "id": "seg_001",
+    "workspace_id": "workspace_001",
+    "name": "High-intent SharePoint leads in India",
+    "type": "dynamic",
+    "filters": {
+      "industry": null,
+      "location_contains": "India",
+      "min_score": 80,
+      "intent_level": null,
+      "source": null,
+      "qualification_status": null
+    },
+    "lead_ids": [],
+    "created_at": "2026-09-18T14:00:00Z"
+  }
+]
