@@ -1,0 +1,24 @@
+[
+  {
+    "id": "pub_abc_sharepoint",
+    "title": "Looking for a SharePoint implementation partner",
+    "company": "ABC Technologies",
+    "source": "Public Web",
+    "source_url": "https://example.com/demo/abc-sharepoint-requirement",
+    "published_at": "2026-09-17T09:00:00Z",
+    "requirement": "ABC Technologies is seeking a partner for SharePoint Online implementation, intranet rollout, and document management for ~400 employees. Published as a public partner requirement.",
+    "location": "Pune, India",
+    "industry": "Information technology",
+    "contact": null,
+    "source_type": "Public requirement page",
+    "evidence": [
+      {
+        "quote": "Looking for a SharePoint implementation partner for intranet and document management.",
+        "source": "Public Web catalog"
+      }
+    ],
+    "confidence": 0.82,
+    "label": "DEMO DATA",
+    "is_demo": true
+  }
+]
