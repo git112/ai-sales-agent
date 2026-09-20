@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api, authStore } from "../api";
+import ThemeToggle from "../ThemeToggle";
 
 export default function Settings() {
   const [ws, setWs] = useState<any[]>([]);
@@ -10,6 +11,13 @@ export default function Settings() {
   return (
     <div className="max-w-xl space-y-4">
       <h1 className="text-2xl font-semibold">Settings</h1>
+      <div className="card p-4">
+        <h2 className="font-semibold">Appearance</h2>
+        <p className="text-sm text-gray-500 mt-1">Switch light and dark without reloading.</p>
+        <div className="mt-3">
+          <ThemeToggle />
+        </div>
+      </div>
       <div className="card p-4">
         <h2 className="font-semibold">Language</h2>
         <select

@@ -28,14 +28,14 @@ export default function OpportunityDetail() {
       <div className="flex justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold">{o.title}</h1>
+            <h1 className="font-display text-3xl">{o.title}</h1>
             <span className="badge bg-amber-50 text-amber-800">DEMO DATA</span>
           </div>
           <p className="text-gray-600 mt-1">{o.requirement}</p>
         </div>
-        <div className="card px-6 py-4 text-center min-w-[140px]">
-          <div className="text-xs text-gray-500">AI Opportunity Score</div>
-          <div className="text-4xl font-semibold text-blue-800">{score.total ?? "—"}</div>
+        <div className="card px-6 py-5 text-center min-w-[150px] score-glow">
+          <div className="text-xs text-gray-500 tracking-widest uppercase">AI Opportunity Score</div>
+          <div className="text-5xl font-display text-[#f0d089] mt-1">{score.total ?? "—"}</div>
           <div className="text-[10px] text-gray-400 mt-1">/ 100 · heuristic</div>
         </div>
       </div>
@@ -246,7 +246,7 @@ function DNA({ o, company, signals, score }: any) {
   return (
     <div className="grid lg:grid-cols-3 gap-4">
       <div className="lg:col-span-2 card p-6">
-        <h3 className="font-semibold text-lg">Opportunity DNA</h3>
+        <h3 className="font-display text-2xl">Opportunity DNA</h3>
         <div className="grid md:grid-cols-2 gap-4 mt-4">
           {rows.map(([k, v]) => (
             <div key={k}>
@@ -297,9 +297,9 @@ function DNA({ o, company, signals, score }: any) {
               <span>{k}</span>
               <span>{v}</span>
             </div>
-            <div className="h-2 bg-gray-100 rounded mt-1">
-              <div className="h-2 bg-blue-600 rounded" style={{ width: `${v || 0}%` }} />
-            </div>
+              <div className="h-2 bg-gray-100 rounded-full mt-1 overflow-hidden">
+                <div className="h-2 rounded-full bg-gradient-to-r from-[#b8862b] to-[#f3d48a]" style={{ width: `${v || 0}%` }} />
+              </div>
           </div>
         ))}
         <p className="text-[11px] text-gray-400 mt-4">{score.disclaimer}</p>

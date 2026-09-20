@@ -45,7 +45,7 @@ export default function Playground() {
         </select>
         <div className="flex-1 overflow-auto space-y-2">
           {history.map((m, i) => (
-            <div key={i} className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${m.speaker === "agent" ? "bg-blue-50" : "bg-gray-100 ml-auto"}`}>
+            <div key={i} className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${m.speaker === "agent" ? "bg-blue-50" : "bg-gray-100 ml-auto"}`}>
               <div className="text-[10px] uppercase text-gray-400">{m.speaker}</div>
               {m.text}
             </div>

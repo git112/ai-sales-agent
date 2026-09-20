@@ -23,7 +23,7 @@ export default function Opportunities() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold">Find opportunities</h1>
+      <h1 className="font-display text-3xl">Find opportunities</h1>
       <p className="text-sm text-gray-500 mt-1">Natural language search against permitted demo sources. Results are labeled DEMO DATA.</p>
       <div className="flex gap-2 mt-4">
         <input className="input" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -34,7 +34,7 @@ export default function Opportunities() {
       {note && <p className="text-xs text-amber-800 mt-2">{note}</p>}
       <div className="mt-6 space-y-3">
         {rows.filter((o) => String(o.id || "").startsWith("opp_")).map((o) => (
-          <Link key={o.id} to={`/app/opportunities/${o.id}`} className="card p-5 block hover:border-blue-200">
+          <Link key={o.id} to={`/app/opportunities/${o.id}`} className="card p-5 block tilt-3d">
             <div className="flex justify-between">
               <div>
                 <div className="font-semibold">{o.company_name || o.title || o.requirement}</div>
@@ -44,7 +44,7 @@ export default function Opportunities() {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-semibold text-blue-800">{o.score?.total ?? "—"}</div>
+                <div className="text-3xl font-display text-[#f0d089]">{o.score?.total ?? "—"}</div>
                 <div className="text-xs text-gray-500">AI Opportunity Score</div>
                 <span className="badge bg-amber-50 text-amber-800 mt-2">DEMO DATA</span>
               </div>

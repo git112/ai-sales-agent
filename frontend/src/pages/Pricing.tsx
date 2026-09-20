@@ -1,12 +1,16 @@
 import { Link } from "react-router-dom";
+import ThemeToggle from "../ThemeToggle";
 
 export default function Pricing() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen p-6">
       <div className="max-w-5xl mx-auto px-6 py-16">
-        <Link to="/" className="text-sm text-blue-800">
-          Lumina
-        </Link>
+        <div className="flex justify-between">
+          <Link to="/" className="text-sm text-blue-800">
+            Lumina
+          </Link>
+          <ThemeToggle />
+        </div>
         <h1 className="text-3xl font-semibold mt-4">Pricing</h1>
         <p className="text-gray-600 mt-2">Hackathon display only — billing is not implemented.</p>
         <div className="grid md:grid-cols-3 gap-4 mt-10">

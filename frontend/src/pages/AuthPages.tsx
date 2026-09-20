@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../auth";
+import ThemeToggle from "../ThemeToggle";
 
 export function Login() {
   const { login } = useAuth();
@@ -94,12 +95,15 @@ export function Forgot() {
 
 function AuthCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#f4f6f8] flex items-center justify-center p-6">
-      <div className="card w-full max-w-md p-8">
-        <Link to="/" className="text-sm text-blue-800">
-          Lumina
-        </Link>
-        <h1 className="text-xl font-semibold mt-2">{title}</h1>
+    <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="card w-full max-w-md p-8 score-glow">
+        <div className="flex items-center justify-between">
+          <Link to="/" className="text-sm text-blue-800 flex items-center">
+            <span className="logo-mark">L</span> Lumina
+          </Link>
+          <ThemeToggle />
+        </div>
+        <h1 className="font-display text-3xl mt-3">{title}</h1>
         <div className="mt-6">{children}</div>
         <p className="text-sm text-gray-500 mt-6">
           <Link to="/login">Login</Link> · <Link to="/signup">Signup</Link>

@@ -12,7 +12,7 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Sales intelligence</h1>
+        <h1 className="font-display text-3xl">Sales intelligence</h1>
         <p className="text-gray-500 text-sm">Workspace metrics from JSON records — never invented.</p>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
@@ -27,7 +27,7 @@ export default function Dashboard() {
         ].map(([k, v]) => (
           <div key={k} className="card p-4">
             <div className="text-xs text-gray-500">{k}</div>
-            <div className="text-2xl font-semibold mt-1">{v}</div>
+            <div className="text-3xl font-display text-[#f0d089] mt-1">{v}</div>
           </div>
         ))}
       </div>

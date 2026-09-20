@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../api";
 import { useAuth } from "../auth";
+import ThemeToggle from "../ThemeToggle";
 
 export default function Admin() {
   const { logout } = useAuth();
@@ -23,10 +24,11 @@ export default function Admin() {
     api.get(map[tab] || map.users).then((r) => setData(r.data));
   }, [tab]);
   return (
-    <div className="min-h-screen bg-[#f4f6f8] p-6">
+    <div className="min-h-screen p-6">
       <div className="flex justify-between mb-6">
         <h1 className="text-2xl font-semibold">Admin</h1>
-        <div className="flex gap-3 text-sm">
+        <div className="flex gap-3 text-sm items-center">
+          <ThemeToggle />
           <Link to="/app/dashboard">App</Link>
           <button onClick={() => logout()}>Logout</button>
         </div>
