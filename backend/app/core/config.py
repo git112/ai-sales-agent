@@ -15,9 +15,14 @@ class Settings(BaseSettings):
     default_app_mode: str = "demo"
     upload_dir: str = "uploads"
     chroma_path: str = "chroma"
+    sqlite_path: str = "data/sales_agent.db"
     ai_provider: str = "demo"
     openai_api_key: str | None = None
     openai_model: str = "gpt-4o-mini"
+    ai_base_url: str | None = None
+    ai_timeout_seconds: float = 10
+    ai_max_output_tokens: int = 800
+    url_cache_ttl_seconds: int = 21600
 
 
 settings = Settings()

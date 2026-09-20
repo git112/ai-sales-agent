@@ -372,5 +372,231 @@
     "entity_id": "user_001",
     "meta": {},
     "created_at": "2026-09-20T07:55:41Z"
+  },
+  {
+    "id": "audit_a99c440707",
+    "workspace_id": null,
+    "actor_user_id": "admin_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "admin_001",
+    "meta": {},
+    "created_at": "2026-09-20T08:45:47Z"
+  },
+  {
+    "id": "audit_b5c5aebcd5",
+    "workspace_id": null,
+    "actor_user_id": "admin_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "admin_001",
+    "meta": {},
+    "created_at": "2026-09-20T08:49:15Z"
+  },
+  {
+    "id": "audit_7c745490bf",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "user_001",
+    "meta": {},
+    "created_at": "2026-09-20T08:49:15Z"
+  },
+  {
+    "id": "audit_3d67d9310f",
+    "workspace_id": null,
+    "actor_user_id": "admin_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "admin_001",
+    "meta": {},
+    "created_at": "2026-09-20T08:49:50Z"
+  },
+  {
+    "id": "audit_d09558a2b5",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "user_001",
+    "meta": {},
+    "created_at": "2026-09-20T09:42:31Z"
+  },
+  {
+    "id": "audit_7788e3c2d4",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "analyze_url",
+    "entity": "business_profile",
+    "entity_id": "profile_001",
+    "meta": {
+      "url": "https://example.com/northwind-digital",
+      "fetch_status": "failed_fallback"
+    },
+    "created_at": "2026-09-20T09:42:32Z"
+  },
+  {
+    "id": "audit_f98a6def8e",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "approve_profile",
+    "entity": "business_profile",
+    "entity_id": "profile_001",
+    "meta": {},
+    "created_at": "2026-09-20T09:42:33Z"
+  },
+  {
+    "id": "audit_8d03852888",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "search_opportunities",
+    "entity": "opportunity",
+    "entity_id": null,
+    "meta": {
+      "query": "Find companies looking for SharePoint implementation."
+    },
+    "created_at": "2026-09-20T09:42:35Z"
+  },
+  {
+    "id": "audit_53b72247ec",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "create_campaign",
+    "entity": "campaign",
+    "entity_id": "camp_ccef2afa56",
+    "meta": {},
+    "created_at": "2026-09-20T09:42:36Z"
+  },
+  {
+    "id": "audit_7a01e7ecdc",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "launch_campaign",
+    "entity": "campaign",
+    "entity_id": "camp_ccef2afa56",
+    "meta": {},
+    "created_at": "2026-09-20T09:42:36Z"
+  },
+  {
+    "id": "audit_386bb0acea",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "simulate_call",
+    "entity": "call",
+    "entity_id": "call_593edfca96",
+    "meta": {},
+    "created_at": "2026-09-20T09:42:36Z"
+  },
+  {
+    "id": "audit_4bdf8d2d71",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "campaign_next_step",
+    "entity": "campaign",
+    "entity_id": "camp_ccef2afa56",
+    "meta": {
+      "lead_id": "lead_abc",
+      "outcome": "No Answer"
+    },
+    "created_at": "2026-09-20T09:42:36Z"
+  },
+  {
+    "id": "audit_78b3c34639",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "simulate_call",
+    "entity": "call",
+    "entity_id": "call_f2ea60d877",
+    "meta": {},
+    "created_at": "2026-09-20T09:42:36Z"
+  },
+  {
+    "id": "audit_2a89f4c7ea",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "campaign_next_step",
+    "entity": "campaign",
+    "entity_id": "camp_ccef2afa56",
+    "meta": {
+      "lead_id": "lead_abc",
+      "outcome": "Voicemail"
+    },
+    "created_at": "2026-09-20T09:42:36Z"
+  },
+  {
+    "id": "audit_9ff3921c9e",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "simulate_call",
+    "entity": "call",
+    "entity_id": "call_4bb0989912",
+    "meta": {},
+    "created_at": "2026-09-20T09:42:37Z"
+  },
+  {
+    "id": "audit_69ffb67ca3",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "campaign_next_step",
+    "entity": "campaign",
+    "entity_id": "camp_ccef2afa56",
+    "meta": {
+      "lead_id": "lead_abc",
+      "outcome": "Interested"
+    },
+    "created_at": "2026-09-20T09:42:37Z"
+  },
+  {
+    "id": "audit_449b094057",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "run_saved_search",
+    "entity": "saved_search",
+    "entity_id": "search_001",
+    "meta": {},
+    "created_at": "2026-09-20T09:42:39Z"
+  },
+  {
+    "id": "audit_b21ccaddb2",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "user_001",
+    "meta": {},
+    "created_at": "2026-09-20T09:50:04Z"
+  },
+  {
+    "id": "audit_d2197e2d55",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "user_001",
+    "meta": {},
+    "created_at": "2026-09-20T09:50:05Z"
+  },
+  {
+    "id": "audit_19cdceebc0",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "set_mode",
+    "entity": "workspace",
+    "entity_id": "workspace_001",
+    "meta": {
+      "mode": "live"
+    },
+    "created_at": "2026-09-20T09:50:10Z"
+  },
+  {
+    "id": "audit_e4fb59ad67",
+    "workspace_id": "workspace_001",
+    "actor_user_id": "user_001",
+    "action": "login",
+    "entity": "user",
+    "entity_id": "user_001",
+    "meta": {},
+    "created_at": "2026-09-20T10:19:49Z"
   }
 ]

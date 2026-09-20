@@ -146,5 +146,74 @@
       ],
       "priority": "HIGH"
     }
+  },
+  {
+    "id": "tr_8d241d1904",
+    "workspace_id": "workspace_001",
+    "call_id": "call_f2ea60d877",
+    "turns": [
+      {
+        "speaker": "agent",
+        "text": "Hello, I am an AI sales assistant calling on behalf of Northwind Digital. This is a demo voice simulation. I can share only approved service information. Could you tell me how your team currently manages SharePoint? Confirm requirement, timeline, technology, and whether they want a specialist follow-up.",
+        "ts": "2026-09-20T09:42:36Z"
+      },
+      {
+        "speaker": "prospect",
+        "text": "voicemail",
+        "ts": "2026-09-20T09:42:36Z"
+      },
+      {
+        "speaker": "agent",
+        "text": "Hello, this is an AI assistant calling on behalf of Northwind Digital about SharePoint implementation. Please call us back if you would like to speak with a specialist. Thank you.",
+        "ts": "2026-09-20T09:42:36Z"
+      }
+    ],
+    "summary": "Demo simulation with ABC Technologies. Interest: Unknown. Requirements: not captured. Timeline: not captured.",
+    "requirements": null,
+    "objections": null,
+    "interest_level": "Unknown",
+    "recommended_action": {
+      "action": "Research company",
+      "why": "Qualification is incomplete.",
+      "evidence": [],
+      "priority": "MEDIUM"
+    }
+  },
+  {
+    "id": "tr_f41edb5885",
+    "workspace_id": "workspace_001",
+    "call_id": "call_4bb0989912",
+    "turns": [
+      {
+        "speaker": "agent",
+        "text": "Hello, I am an AI sales assistant calling on behalf of Northwind Digital. This is a demo voice simulation. I can share only approved service information. Could you tell me how your team currently manages SharePoint? Confirm requirement, timeline, technology, and whether they want a specialist follow-up.",
+        "ts": "2026-09-20T09:42:37Z"
+      },
+      {
+        "speaker": "prospect",
+        "text": "We are looking for SharePoint migration support and want to start this month.",
+        "ts": "2026-09-20T09:42:37Z"
+      },
+      {
+        "speaker": "agent",
+        "text": "Thank you. I have noted a high-intent requirement for SharePoint support. A specialist should follow up to schedule a meeting and discuss a proposal. Thank you for your time. A human teammate will follow the next best action we captured.",
+        "ts": "2026-09-20T09:42:37Z"
+      }
+    ],
+    "summary": "Demo simulation with ABC Technologies. Interest: Interested. Requirements: SharePoint migration support. Timeline: this month.",
+    "requirements": "SharePoint migration support",
+    "objections": null,
+    "interest_level": "Interested",
+    "recommended_action": {
+      "action": "Schedule a human sales meeting.",
+      "why": "Prospect confirmed an active requirement and requested a specialist or proposal.",
+      "evidence": [
+        {
+          "quote": "We are looking for SharePoint migration support and want to start this month.",
+          "source": "Demo Voice Simulation"
+        }
+      ],
+      "priority": "HIGH"
+    }
   }
 ]

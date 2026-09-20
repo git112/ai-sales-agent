@@ -13,13 +13,14 @@
     "website": "https://example.com/abc-technologies",
     "location": "Pune, India",
     "industry": "Information technology",
-    "notes": "DEMO DATA. Primary hackathon opportunity.",
+    "notes": "PERSIST_SQLITE_QA_20260920",
     "pipeline_stage": "qualified",
     "source": "Demo Source",
     "intent_level": "interested",
     "opportunity_score": 92,
     "qualification_status": "complete",
     "campaign_ids": [
+      "camp_ccef2afa56",
       "camp_33739c94fd",
       "camp_52e0cd6b44",
       "camp_f6fd222aa2",
@@ -27,7 +28,7 @@
     ],
     "is_demo": true,
     "created_at": "2026-09-18T11:30:00Z",
-    "last_updated": "2026-09-20T07:51:28Z"
+    "last_updated": "2026-09-20T10:19:49Z"
   },
   {
     "id": "lead_helix",

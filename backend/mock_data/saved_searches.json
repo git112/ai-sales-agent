@@ -13,7 +13,14 @@
     "source": "Demo Source",
     "frequency": "daily",
     "status": "active",
-    "last_run_at": "2026-09-20T07:47:02Z",
-    "created_at": "2026-09-18T15:00:00Z"
+    "last_run_at": "2026-09-20T09:42:39Z",
+    "created_at": "2026-09-18T15:00:00Z",
+    "match_ids": [
+      "opp_helix",
+      "pub_abc_sharepoint",
+      "opp_orbit",
+      "opp_abc"
+    ],
+    "new_matches": 4
   }
 ]

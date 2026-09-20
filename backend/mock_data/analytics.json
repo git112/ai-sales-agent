@@ -1,18 +1,19 @@
 {
   "workspace_001": {
-    "calls_attempted": 4,
-    "connected": 4,
-    "voicemail": 0,
-    "qualification_rate": 100,
-    "interested": 4,
+    "calls_attempted": 7,
+    "connected": 5,
+    "voicemail": 1,
+    "qualification_rate": 71,
+    "interested": 5,
     "callbacks": 0,
     "opt_outs": 0,
-    "avg_duration_sec": 42,
+    "avg_duration_sec": 32,
     "series": [
       {
         "date": "2026-09-20",
-        "calls": 4
+        "calls": 7
       }
-    ]
+    ],
+    "no_answer": 1
   }
 }
