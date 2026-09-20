@@ -4,7 +4,7 @@ import jwt
 
 from app.core.config import settings
 from app.core.security import decode_token
-from app.store import get_by_id
+from app.store import get_all, get_by_id
 
 bearer = HTTPBearer(auto_error=False)
 
@@ -27,6 +27,8 @@ def current_user(
     user = get_by_id("users", payload.get("sub"))
     if not user:
         raise HTTPException(401, "User not found")
+    if user.get("status") == "suspended":
+        raise HTTPException(403, "Account suspended")
     return user
 
 
@@ -39,11 +41,19 @@ def require_admin(user=Depends(current_user)):
 def workspace_id(user=Depends(current_user), x_workspace_id: str | None = Header(default=None)):
     wid = x_workspace_id or user.get("workspace_id")
     if user.get("role") == "admin":
+        if not wid:
+            workspaces = get_all("workspaces")
+            if not workspaces:
+                raise HTTPException(400, "Workspace required")
+            wid = workspaces[0]["id"]
+        ws = get_by_id("workspaces", wid)
+        if not ws:
+            raise HTTPException(404, "Workspace not found")
         return wid
     if not wid:
         raise HTTPException(400, "Workspace required")
     if user.get("workspace_id") and wid != user.get("workspace_id"):
-        raise HTTPException(403, "Tenant isolation")
+        raise HTTPException(404, "Not found")
     ws = get_by_id("workspaces", wid)
     if not ws:
         raise HTTPException(404, "Workspace not found")
