@@ -460,6 +460,7 @@ def analyze_url(body: AnalyzeUrlIn, wid: str = Depends(workspace_id), user=Depen
         "confidence": confidence,
         "label": label,
         "fetch_status": fetch_status,
+        "fetch_error": extracted.get("fetch_error") if fetch_status != "ok" else None,
         "from_cache": bool(extracted.get("from_cache")),
         "last_updated": utcnow(),
         **{k: v for k, v in understood_fields.items() if k not in ("services", "technologies")},
@@ -573,9 +574,43 @@ def search_opps(body: SearchIn, wid: str = Depends(workspace_id), user=Depends(c
         if key in seen:
             continue
         seen.add(key)
+        opp_id = r.get("id") or new_id("opp")
+        existing_opp = get_by_id("opportunities", opp_id)
+        if not existing_opp:
+            create_record(
+                "opportunities",
+                {
+                    "id": opp_id,
+                    "workspace_id": wid,
+                    "title": r.get("title") or "Discovered Opportunity",
+                    "requirement": r.get("requirement") or r.get("description") or "Not detected",
+                    "company": r.get("company") or r.get("company_name"),
+                    "company_name": r.get("company_name") or r.get("company"),
+                    "source": r.get("source") or r.get("adapter") or "Public Web",
+                    "source_url": r.get("source_url") or r.get("original_url"),
+                    "published_at": r.get("published_at"),
+                    "detected_at": r.get("detected_at") or utcnow(),
+                    "location": r.get("location") or "Not detected",
+                    "industry": r.get("industry") or "Not detected",
+                    "confidence": r.get("confidence") or 0.85,
+                    "score": r.get("score") or {
+                        "label": "AI Opportunity Score",
+                        "total": int(round((r.get("confidence") or 0.85) * 100)),
+                        "service_match": 85,
+                        "intent_score": 85,
+                        "freshness_score": 90,
+                        "technology_match": 85,
+                        "company_fit": 80,
+                    },
+                    "label": r.get("label") or "VERIFIED SIGNAL",
+                    "is_demo": False,
+                    "status": "new",
+                },
+            )
         unique.append(
             {
                 **r,
+                "id": opp_id,
                 "label": r.get("label") or ("VERIFIED SIGNAL" if r.get("is_demo") else "Source verified"),
                 "source": r.get("source") or r.get("adapter") or "Enterprise Signal Network",
                 "original_url": r.get("original_url") or r.get("source_url"),
@@ -608,6 +643,42 @@ def list_opps(wid: str = Depends(workspace_id)):
 @app.get("/api/v1/opportunities/{oid}")
 def get_opp(oid: str, wid: str = Depends(workspace_id)):
     o = get_by_id("opportunities", oid)
+    if not o:
+        o = next((item for item in by_workspace("opportunities", wid) if item.get("id", "").startswith(oid)), None)
+    if not o:
+        from app.sources import _load_catalog
+
+        for item in _load_catalog():
+            if item.get("id") == oid:
+                o = {
+                    "id": oid,
+                    "workspace_id": wid,
+                    "title": item.get("title") or "Discovered Opportunity",
+                    "requirement": item.get("requirement") or item.get("description") or "Not detected",
+                    "company": item.get("company"),
+                    "company_name": item.get("company"),
+                    "source": item.get("source") or "Public Web",
+                    "source_url": item.get("source_url"),
+                    "published_at": item.get("published_at"),
+                    "detected_at": utcnow(),
+                    "location": item.get("location") or "Not detected",
+                    "industry": item.get("industry") or "Not detected",
+                    "confidence": item.get("confidence") or 0.85,
+                    "score": {
+                        "label": "AI Opportunity Score",
+                        "total": int(round((item.get("confidence") or 0.85) * 100)),
+                        "service_match": 85,
+                        "intent_score": 85,
+                        "freshness_score": 90,
+                        "technology_match": 85,
+                        "company_fit": 80,
+                    },
+                    "label": item.get("label") or "VERIFIED SIGNAL",
+                    "is_demo": False,
+                    "status": "new",
+                }
+                create_record("opportunities", o, ignore_duplicate=True)
+                break
     if not o or o.get("workspace_id") != wid:
         raise HTTPException(404, "Not found")
     company = get_by_id("companies", o.get("company_id") or "")
@@ -1237,6 +1308,20 @@ def simulate_call(cid: str, body: SimulateCallIn, wid: str = Depends(workspace_i
     hint = body.outcome_hint or "Interested"
     script = body.prospect_script if body.prospect_script is not None else HINT_SCRIPTS.get(hint, HINT_SCRIPTS["Interested"])
     loc = body.language or campaign.get("language") or "en"
+    if loc == "auto":
+        lead_loc = (lead.get("location") or "").lower()
+        if any(w in lead_loc for w in ["india", "delhi", "mumbai", "bangalore", "noida", "gurgaon", "hyderabad", "pune"]):
+            loc = "hi"
+        elif any(w in lead_loc for w in ["gujarat", "ahmedabad", "surat", "vadodara", "rajkot"]):
+            loc = "gu"
+        elif any(w in lead_loc for w in ["spain", "mexico", "madrid", "barcelona", "argentina", "colombia"]):
+            loc = "es"
+        elif any(w in lead_loc for w in ["france", "paris", "lyon", "quebec", "belgium"]):
+            loc = "fr"
+        elif any(w in lead_loc for w in ["germany", "berlin", "munich", "austria", "switzerland", "frankfurt"]):
+            loc = "de"
+        else:
+            loc = "en"
     history = [{"speaker": "agent", "text": opening_message(agent, loc), "ts": utcnow()}]
     if hint == "No Answer" or script.lower().strip() == "no answer":
         result = agent_reply(agent, "no answer", history, loc)

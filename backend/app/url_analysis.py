@@ -14,8 +14,8 @@ from app.store import utcnow
 
 log = logging.getLogger("lumina.url_analysis")
 
-MAX_BYTES = 80_000
-TIMEOUT = 6
+MAX_BYTES = 2_500_000
+TIMEOUT = 12
 USER_AGENT = "LuminaHackathonBot/0.1 (+https://localhost; demo URL analysis)"
 
 

@@ -146,18 +146,20 @@ def get_by_id(collection: str, record_id: str) -> dict | None:
     return None
 
 
-def create_record(collection: str, record: dict) -> dict:
+def create_record(collection: str, record: dict, ignore_duplicate: bool = False) -> dict:
     if "id" not in record:
         record["id"] = new_id(collection[:4])
     if sqlite_active():
         try:
-            return _sql().create_record(collection, record)
+            return _sql().create_record(collection, record, ignore_duplicate=ignore_duplicate)
         except KeyError:
             pass
     with _lock:
         data = _json_read(collection)
         if not isinstance(data, list):
             data = []
+        if ignore_duplicate and any(r.get("id") == record.get("id") for r in data):
+            return deepcopy(record)
         data.append(record)
         _json_write(collection, data)
         return deepcopy(record)

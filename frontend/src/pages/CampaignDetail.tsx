@@ -12,6 +12,7 @@ export default function CampaignDetail() {
   const [hint, setHint] = useState("Interested");
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
+  const [callLang, setCallLang] = useState("auto");
 
   useEffect(() => {
     api.get(`/campaigns/${id}`).then((r) => setCamp(r.data));
@@ -90,12 +91,25 @@ export default function CampaignDetail() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-          <div className="w-full sm:w-64">
+          <div className="w-full sm:w-56">
             <label className="block text-xs font-semibold text-slate-700 mb-1">Target Outcome Trigger</label>
             <select className="input h-10 text-xs font-medium" value={hint} onChange={(e) => setHint(e.target.value)}>
               {OUTCOMES.map((h) => (
                 <option key={h} value={h}>{h}</option>
               ))}
+            </select>
+          </div>
+
+          <div className="w-full sm:w-56">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Call Language</label>
+            <select className="input h-10 text-xs font-medium" value={callLang} onChange={(e) => setCallLang(e.target.value)}>
+              <option value="auto">Auto-detect from Lead</option>
+              <option value="en">English (US/UK/Global)</option>
+              <option value="hi">Hindi (हिन्दी)</option>
+              <option value="gu">Gujarati (ગુજરાતી)</option>
+              <option value="es">Spanish (Español)</option>
+              <option value="fr">French (Français)</option>
+              <option value="de">German (Deutsch)</option>
             </select>
           </div>
 
@@ -107,7 +121,11 @@ export default function CampaignDetail() {
                 setBusy("sim");
                 setErr("");
                 try {
-                  const { data } = await api.post(`/campaigns/${id}/calls/simulate`, { lead_id: leadId, outcome_hint: hint });
+                  const { data } = await api.post(`/campaigns/${id}/calls/simulate`, {
+                    lead_id: leadId,
+                    outcome_hint: hint,
+                    language: callLang,
+                  });
                   setResult(data);
                 } catch (e: any) {
                   setErr(e.response?.data?.error?.message || "Simulation failed");
@@ -164,6 +182,46 @@ export default function CampaignDetail() {
           <p className="text-sm text-slate-700 leading-relaxed font-medium">
             {result.transcript?.summary || result.call?.outcome}
           </p>
+
+          {/* Real-time Dialogue Transcript */}
+          {result.transcript?.turns && result.transcript.turns.length > 0 && (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2 max-h-60 overflow-y-auto">
+              <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Live Call Transcript</div>
+              {result.transcript.turns.map((turn: any, idx: number) => (
+                <div
+                  key={idx}
+                  className={`text-xs p-2 rounded-lg max-w-[85%] ${
+                    turn.speaker === "agent"
+                      ? "bg-indigo-50/80 text-indigo-950 border border-indigo-100"
+                      : "bg-white text-slate-800 border border-slate-200 ml-auto shadow-xs"
+                  }`}
+                >
+                  <div className="text-[10px] font-semibold text-slate-400 uppercase mb-0.5">
+                    {turn.speaker === "agent" ? "🤖 AI Assistant" : "👤 Prospect"}
+                  </div>
+                  <div className="leading-snug">{turn.text}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Negative Call or Human Handoff Banner */}
+          {result.call?.escalated && (
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center justify-between">
+              <div>
+                <strong>👤 Human Handoff Triggered:</strong> {result.call?.handoff_reason || "Prospect requested specialist"}
+              </div>
+              <span className="badge bg-amber-200 text-amber-900 border-none font-bold">Transfer Queue</span>
+            </div>
+          )}
+          {result.call?.outcome === "Not Interested" && (
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-center justify-between">
+              <div>
+                <strong>🚫 Negative Outreach Handled:</strong> Outreach ceased & number placed on Do-Not-Contact list.
+              </div>
+              <span className="badge bg-rose-200 text-rose-900 border-none font-bold">Opted Out</span>
+            </div>
+          )}
 
           <div className="text-xs text-slate-500 flex items-center gap-4 pt-1">
             {result.next_best_action && (

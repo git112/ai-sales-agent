@@ -215,29 +215,52 @@ export default function ImportLeads() {
           )}
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
-            <button className="btn btn-ghost text-xs" onClick={() => nav("/app/leads")}>
-              Cancel
-            </button>
-            <button
-              className="btn btn-primary text-xs px-5 flex items-center gap-1.5"
-              disabled={busy}
-              onClick={async () => {
-                setBusy(true);
-                setErr("");
-                try {
-                  await api.post("/leads/import", { mapping, rows: (preview.preview || []).map((p: any) => p.row) });
-                  nav("/app/leads");
-                } catch (e: any) {
-                  setErr(e.response?.data?.error?.message || "Import failed");
-                } finally {
-                  setBusy(false);
-                }
-              }}
-            >
-              <Check className="w-4 h-4" />
-              <span>{busy ? "Importing…" : "Import Valid Leads"}</span>
-            </button>
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+            <div className="text-xs text-slate-500">
+              💡 <strong>Own Leads Mode:</strong> Upload prospect lists directly for AI Calling without needing AI lead discovery.
+            </div>
+            <div className="flex items-center gap-2">
+              <button className="btn btn-ghost text-xs" onClick={() => nav("/app/leads")}>
+                Cancel
+              </button>
+              <button
+                className="btn btn-ghost text-xs border border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  setErr("");
+                  try {
+                    await api.post("/leads/import", { mapping, rows: (preview.preview || []).map((p: any) => p.row) });
+                    nav("/app/campaigns/new");
+                  } catch (e: any) {
+                    setErr(e.response?.data?.error?.message || "Import failed");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                <span>Import & Launch AI Calling Campaign</span>
+              </button>
+              <button
+                className="btn btn-primary text-xs px-5 flex items-center gap-1.5"
+                disabled={busy}
+                onClick={async () => {
+                  setBusy(true);
+                  setErr("");
+                  try {
+                    await api.post("/leads/import", { mapping, rows: (preview.preview || []).map((p: any) => p.row) });
+                    nav("/app/leads");
+                  } catch (e: any) {
+                    setErr(e.response?.data?.error?.message || "Import failed");
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                <Check className="w-4 h-4" />
+                <span>{busy ? "Importing…" : "Import Valid Leads"}</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

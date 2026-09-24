@@ -11,6 +11,7 @@ export default function CampaignNew() {
   const [name, setName] = useState("SharePoint Qualification Campaign");
   const [agent, setAgent] = useState("");
   const [selected, setSelected] = useState<string[]>(["lead_abc"]);
+  const [language, setLanguage] = useState("auto");
   const [schedule, setSchedule] = useState("immediate");
   const [tz, setTz] = useState("Asia/Kolkata");
   const [retry, setRetry] = useState(3);
@@ -64,6 +65,19 @@ export default function CampaignNew() {
                   {a.name} ({a.language || "Multilingual"})
                 </option>
               ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Target Language / Locale</label>
+            <select className="input h-10 text-xs font-medium" value={language} onChange={(e) => setLanguage(e.target.value)}>
+              <option value="auto">Auto-detect based on Lead Location</option>
+              <option value="en">English (US/UK/Global)</option>
+              <option value="hi">Hindi (हिन्दी - India)</option>
+              <option value="gu">Gujarati (ગુજરાતી - India)</option>
+              <option value="es">Spanish (Español)</option>
+              <option value="fr">French (Français)</option>
+              <option value="de">German (Deutsch)</option>
             </select>
           </div>
 
@@ -134,7 +148,7 @@ export default function CampaignNew() {
                   objective: "Qualify SharePoint needs",
                   agent_id: agent,
                   lead_ids: selected,
-                  language: "en",
+                  language: language,
                   schedule,
                   timezone: tz,
                   quiet_hours: { start: quietStart, end: quietEnd },

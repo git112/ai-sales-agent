@@ -45,10 +45,13 @@ export default function Playground() {
         </div>
         <div className="flex items-center gap-2 mb-3">
           <label className="text-xs font-semibold text-slate-600">Language:</label>
-          <select className="input max-w-[140px] h-9 text-xs font-medium" value={lang} onChange={(e) => setLang(e.target.value)}>
-            <option value="en">English (US)</option>
-            <option value="hi">Hindi (IN)</option>
-            <option value="gu">Gujarati (IN)</option>
+          <select className="input max-w-[180px] h-9 text-xs font-medium" value={lang} onChange={(e) => setLang(e.target.value)}>
+            <option value="en">English (US/UK/Global)</option>
+            <option value="hi">Hindi (हिन्दी - IN)</option>
+            <option value="gu">Gujarati (ગુજરાતી - IN)</option>
+            <option value="es">Spanish (Español)</option>
+            <option value="fr">French (Français)</option>
+            <option value="de">German (Deutsch)</option>
           </select>
         </div>
         <div className="flex-1 overflow-auto space-y-2">

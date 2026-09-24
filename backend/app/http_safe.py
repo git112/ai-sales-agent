@@ -8,9 +8,9 @@ from urllib.parse import urljoin, urlparse
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 USER_AGENT = "LuminaHackathonBot/0.1 (+https://localhost; public-source fetch)"
-MAX_BYTES = 80_000
+MAX_BYTES = 2_500_000
 MAX_REDIRECTS = 3
-TIMEOUT = 6
+TIMEOUT = 12
 ALLOWED_SCHEMES = ("http", "https")
 HTML_TYPES = ("text/html", "application/xhtml+xml")
 BLOCKED_HOSTS = {
@@ -67,16 +67,16 @@ def _hostname_blocked(host: str) -> bool:
     return False
 
 
+NAT64_PREFIX = ipaddress.ip_network("64:ff9b::/96")
+NAT64_LOCAL_PREFIX = ipaddress.ip_network("64:ff9b:1::/48")
+
+
 def _ip_public(ip: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
-    return bool(
-        ip.is_global
-        and not ip.is_private
-        and not ip.is_loopback
-        and not ip.is_link_local
-        and not ip.is_multicast
-        and not ip.is_reserved
-        and not ip.is_unspecified
-    )
+    if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_unspecified:
+        return False
+    if ip.version == 6 and (ip in NAT64_PREFIX or ip in NAT64_LOCAL_PREFIX):
+        return True
+    return bool(ip.is_global and not ip.is_reserved)
 
 
 def validate_public_url(url: str, *, resolve: bool = True) -> str:
@@ -169,11 +169,11 @@ def fetch_url(
             clen = resp.headers.get("Content-Length")
             if clen:
                 try:
-                    if int(clen) > max_bytes:
-                        raise FetchError("oversized", "Response too large")
+                    if int(clen) > 15_000_000:
+                        raise FetchError("oversized", "Response too large (>15MB)")
                 except ValueError:
                     pass
-            raw = resp.read(max_bytes + 1)
+            raw = resp.read(max_bytes)
             final_url = resp.geturl() or target
             status = getattr(resp, "status", 200)
     except FetchError:
@@ -203,8 +203,7 @@ def fetch_url(
     except OSError as exc:
         raise FetchError("connection", str(exc)[:200]) from exc
 
-    if len(raw) > max_bytes:
-        raise FetchError("oversized", "Response too large")
+    raw = raw[:max_bytes]
     if require_html and not any(t in ctype for t in HTML_TYPES) and not raw.lstrip().startswith(b"<"):
         raise FetchError("content_type", "HTML only")
     text = raw.decode("utf-8", errors="ignore")

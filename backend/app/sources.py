@@ -4,6 +4,7 @@ import json
 from urllib.parse import urlparse
 
 from app.http_safe import FetchError, fetch_url, validate_public_url
+from app.live_scraper import scrape_all
 from app.source_trust import source_confidence
 from app.store import DATA_DIR, by_workspace, utcnow
 from app.url_analysis import cached_fetch, extract_profile_from_text
@@ -226,4 +227,34 @@ class CompanyWebsiteAdapter(SourceAdapter):
         return self.last_status or {"name": self.name, "is_live": True, "discovered": 0}
 
 
-ADAPTERS = [EnterpriseRequirementAdapter(), PublicWebAdapter(), CompanyWebsiteAdapter()]
+class LiveDiscoveryAdapter(SourceAdapter):
+    """Scrapes real public internet sources: job boards, RSS feeds, SAM.gov, etc."""
+
+    name = "Live Discovery"
+    is_live = True
+    is_demo = False
+    last_status: dict = {}
+
+    def search(self, workspace_id: str, criteria: dict) -> list[dict]:
+        keywords = [k for k in (criteria.get("keywords") or []) if k]
+        location = criteria.get("location") or ""
+        # Fall back to service keywords if no query keywords
+        if not keywords:
+            keywords = ["IT", "software", "technology", "implementation"]
+        results, statuses = scrape_all(keywords, location, limit_per_source=8)
+        self.last_status = {
+            "name": self.name,
+            "is_live": True,
+            "is_demo": False,
+            "last_fetched_at": utcnow(),
+            "discovered": len(results),
+            "sources": statuses,
+            "error": None,
+        }
+        return results
+
+    def status(self) -> dict:
+        return self.last_status or {"name": self.name, "is_live": True, "discovered": 0}
+
+
+ADAPTERS = [LiveDiscoveryAdapter(), EnterpriseRequirementAdapter(), PublicWebAdapter(), CompanyWebsiteAdapter()]

@@ -4,8 +4,16 @@ from app.knowledge import knowledge_store
 from app.store import utcnow
 
 
-HANDOFF = ["speak to a human", "transfer", "real person", "specialist please", "handoff", "इंसान", "માનવ"]
-OPT_OUT = ["do not call", "don't call", "remove me", "opt out", "stop calling", "not interested in calls"]
+HANDOFF = [
+    "speak to a human", "transfer", "real person", "specialist please", "handoff",
+    "इंसान", "માનવ", "hablar con una persona", "transferir", "humano", "personne humaine",
+    "parler à un conseiller", "mensch", "weiterleiten", "mitarbeiter"
+]
+OPT_OUT = [
+    "do not call", "don't call", "remove me", "opt out", "stop calling", "not interested in calls",
+    "रुचि नहीं", "રસ નથી", "no me llame", "no llamar", "pas intéressé", "ne m'appelez plus",
+    "nicht anrufen", "kein interesse", "abmelden"
+]
 
 SCRIPTS = {
     "en": {
@@ -70,6 +78,57 @@ SCRIPTS = {
         "fallback": "હું મંજૂર માહિતીથી SharePoint અને Microsoft 365 જરૂરિયાતો ક્વોલિફાય કરી શકું. તમે કઈ સેવા ઇચ્છો છો, અને સમયમર્યાદા શું છે?",
         "no_answer": "કોઈ જવાબ નથી. ફોલો-અપ શેડ્યૂલ કર્યું છે.",
         "connected": "કૉલ કનેક્ટ થયો. હું માત્ર મંજૂર જ્ઞાનથી ક્વોલિફિકેશન ચાલુ રાખીશ.",
+    },
+    "es": {
+        "disclosure": "Hola, soy una asistente de ventas con IA de Northwind Digital. Me comunico para conocer sus iniciativas de lugar de trabajo digital.",
+        "greeting": "¿Podría decirme cómo gestiona su equipo actualmente SharePoint?",
+        "qualify": "¿Qué resultado busca en SharePoint o Microsoft 365 y cuál es su plazo estimado?",
+        "faq_services": "Brindamos implementación de SharePoint, migración, consultoría de Microsoft 365, personalizaciones y gestión documental empresarial.",
+        "faq_price": "No dispongo de tarifas públicas estándar; el presupuesto se define tras el descubrimiento. Puedo coordinar un especialista para un taller.",
+        "internal_it": "Es muy habitual. Northwind Digital colabora con frecuencia junto a equipos internos de TI. ¿Desea evaluar un modelo de co-entrega?",
+        "interested": "Muchas gracias. He registrado un requerimiento de alta prioridad. Un especialista se comunicará para coordinar reunión y propuesta.",
+        "callback": "Programaré una llamada de seguimiento con un especialista humano. ¿Qué día y horario le conviene?",
+        "not_interested": "Comprendido. Detendremos el contacto y registraré su número en la lista de no contactar. Muchas gracias.",
+        "handoff": "Le transferiré con un especialista humano inmediatamente. Estoy generando una tarea de seguimiento prioritaria.",
+        "voicemail": "Hola, le saluda el asistente virtual de Northwind Digital. Por favor comuníquese con nosotros acerca de servicios de SharePoint.",
+        "closing": "Gracias por su tiempo. Un integrante de nuestro equipo avanzará con la acción acordada.",
+        "fallback": "¿Qué servicio específico de SharePoint o Microsoft 365 necesita y en qué fecha proyectan iniciar?",
+        "no_answer": "Sin respuesta. Tarea de reintento programada.",
+        "connected": "Llamada conectada. Continuaré la cualificación con información autorizada.",
+    },
+    "fr": {
+        "disclosure": "Bonjour, je suis l'assistant commercial IA de Northwind Digital. Je vous contacte au sujet de vos projets d'environnement de travail numérique.",
+        "greeting": "Pourriez-vous m'indiquer comment votre équipe gère actuellement SharePoint ?",
+        "qualify": "Quel résultat souhaitez-vous atteindre sur SharePoint ou Microsoft 365, et sous quel délai ?",
+        "faq_services": "Nous assurons le déploiement de SharePoint, la migration, le conseil Microsoft 365, l'intégration et la gestion documentaire.",
+        "faq_price": "Les tarifs dépendent du cadrage technique. Je peux planifier un atelier de cadrage avec l'un de nos spécialistes.",
+        "internal_it": "C'est fréquent. Northwind Digital collabore régulièrement en co-délivrance avec les équipes IT internes. Souhaitez-vous en échanger ?",
+        "interested": "Merci beaucoup. J'ai bien noté votre fort intérêt. Un spécialiste vous recontactera rapidement pour organiser une présentation.",
+        "callback": "Je planifie un rappel par un commercial humain. Quel moment vous conviendrait le mieux ?",
+        "not_interested": "Bien noté. Nous stoppons toute démarche et ajoutons vos coordonnées à notre liste d'exclusion. Merci.",
+        "handoff": "Je vous transfère vers un conseiller humain immédiatement. Une action prioritaire vient d'être créée.",
+        "voicemail": "Bonjour, ici l'assistant de Northwind Digital. N'hésitez pas à nous rappeler pour tout sujet SharePoint.",
+        "closing": "Merci pour votre temps. Notre équipe assurera le suivi de votre dossier.",
+        "fallback": "De quelle prestation SharePoint ou Microsoft 365 avez-vous besoin, et sous quelle échéance ?",
+        "no_answer": "Pas de réponse. Tâche de rappel programmée.",
+        "connected": "Appel établi. Poursuite de la qualification.",
+    },
+    "de": {
+        "disclosure": "Guten Tag, ich bin der KI-Vertriebsassistent von Northwind Digital. Ich melde mich bezüglich Ihrer digitalen Arbeitsplatz-Initiativen.",
+        "greeting": "Darf ich fragen, wie Ihr Team SharePoint derzeit im Unternehmen nutzt?",
+        "qualify": "Welche Ziele verfolgen Sie mit SharePoint oder Microsoft 365 und welcher Zeitplan ist vorgesehen?",
+        "faq_services": "Wir bieten SharePoint-Implementierung, Migration, Microsoft 365-Beratung und Dokumentenmanagement auf Unternehmensebene an.",
+        "faq_price": "Preise werden individuell nach Projektumfang kalkuliert. Gerne vereinbare ich einen Beratungstermin mit einem Experten.",
+        "internal_it": "Das ist sehr üblich. Northwind Digital arbeitet häufig partnerschaftlich mit internen IT-Teams zusammen. Wäre ein Co-Delivery-Modell interessant?",
+        "interested": "Vielen Dank! Ich habe Ihr konkretes Interesse erfasst. Ein Spezialist wird sich zur Terminabsprache bei Ihnen melden.",
+        "callback": "Ich plane gerne einen Rückruf durch einen Vertriebsmitarbeiter ein. Welcher Zeitpunkt passt Ihnen am besten?",
+        "not_interested": "Verstanden. Wir beenden die Kontaktaufnahme und setzen Ihre Rufnummer auf unsere Sperrliste. Vielen Dank.",
+        "handoff": "Ich leite Sie direkt an einen menschlichen Spezialisten weiter. Eine Prioritätsaufgabe wurde angelegt.",
+        "voicemail": "Guten Tag, hier ist der digitale Assistent von Northwind Digital. Bitte rufen Sie uns bezüglich SharePoint-Services zurück.",
+        "closing": "Vielen Dank für Ihre Zeit. Ein Kollege wird die nächsten Schritte für Sie koordinieren.",
+        "fallback": "Welche Unterstützung bei SharePoint oder Microsoft 365 benötigen Sie und welcher Zeitrahmen ist geplant?",
+        "no_answer": "Keine Antwort. Wiedervorlage erstellt.",
+        "connected": "Verbindung hergestellt. Starte Qualifizierung.",
     },
 }
 
