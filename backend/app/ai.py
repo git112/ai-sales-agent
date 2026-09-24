@@ -335,6 +335,34 @@ class DemoAIProvider:
                 parts.append("Highest AI Opportunity Score: " + top[0].get("title") + " at " + str((top[0].get("score") or {}).get("total")))
                 cite("opportunity", top[0])
             answer = " ".join(parts) or "No pending actions in workspace data."
+        elif "call" in q or "transcript" in q or "phone" in q or "conversation" in q:
+            transcripts = by_workspace("transcripts", workspace_id)
+            if transcripts:
+                latest = transcripts[-1]
+                answer = f"Found {len(calls)} recorded call(s). Latest call summary: “{latest.get('summary')}”. Qualification interest: {latest.get('interest_level') or 'Unknown'}."
+                cite("transcript", latest)
+                if calls:
+                    cite("call", calls[-1])
+            elif calls:
+                latest_call = calls[-1]
+                answer = f"Found {len(calls)} call record(s). Latest call logged with outcome: {latest_call.get('outcome')}, duration: {latest_call.get('duration_sec')}s."
+                cite("call", latest_call)
+            else:
+                answer = "No calls have been recorded in this workspace yet. Initiate a campaign call to populate call history."
+        elif "knowledge" in q or "doc" in q or "faq" in q or "service" in q or "offer" in q:
+            from app.knowledge import knowledge_store
+            docs = by_workspace("knowledge_documents", workspace_id)
+            hits = knowledge_store.search(workspace_id, question)
+            if hits:
+                answer = f"From verified Knowledge Base: “{hits[0][:280]}...”"
+                if docs:
+                    cite("document", docs[0])
+            elif docs:
+                answer = f"Found {len(docs)} knowledge document(s) on file ({', '.join(d.get('filename') or d.get('title') or 'document' for d in docs[:3])})."
+                for d in docs[:2]:
+                    cite("document", d)
+            else:
+                answer = "No knowledge documents uploaded yet. Upload service capabilities or pricing docs under Knowledge Base to ground agents."
         elif "campaign" in q or "today" in q:
             campaigns = by_workspace("campaigns", workspace_id)
             if campaigns:
@@ -343,15 +371,17 @@ class DemoAIProvider:
             else:
                 answer = "No campaigns have been launched in this workspace yet."
         elif "why" in q and "priorit" in q:
-            abc = next((o for o in opps if o.get("id") == "opp_abc"), None)
-            if abc:
-                answer = f"{abc.get('why_match')} {abc.get('why_now')} AI Opportunity Score {abc.get('score', {}).get('total')}/100."
-                cite("opportunity", abc)
+            top_opp = sorted(opps, key=lambda o: (o.get("score") or {}).get("total") or 0, reverse=True)
+            chosen = top_opp[0] if top_opp else None
+            if chosen:
+                answer = f"{chosen.get('why_match') or 'High technical match'} {chosen.get('why_now') or 'Active hiring signal'}. AI Opportunity Score: {(chosen.get('score') or {}).get('total', 85)}/100."
+                cite("opportunity", chosen)
         else:
-            abc = next((o for o in opps if o.get("id") == "opp_abc"), opps[0] if opps else None)
-            if abc:
-                answer = f"Workspace has {len(opps)} opportunities and {len(leads)} leads. Top record: {abc.get('title')} ({abc.get('source')})."
-                cite("opportunity", abc)
+            top_opp = sorted(opps, key=lambda o: (o.get("score") or {}).get("total") or 0, reverse=True)
+            chosen = top_opp[0] if top_opp else None
+            if chosen:
+                answer = f"Workspace has {len(opps)} opportunities, {len(leads)} leads, and {len(calls)} calls. Top opportunity: {chosen.get('title')} ({chosen.get('company') or chosen.get('source')})."
+                cite("opportunity", chosen)
         return {"answer": answer, "citations": citations, "grounded": True}
 
 
@@ -390,7 +420,11 @@ class LiveAIProvider:
         if not key:
             raise LiveAIError("missing_api_key")
         base = (settings.ai_base_url or "https://api.openai.com").rstrip("/")
-        url = f"{base}/v1/chat/completions"
+        # Avoid double /v1 when base already includes it (e.g. Groq endpoint)
+        if base.endswith("/v1"):
+            url = f"{base}/chat/completions"
+        else:
+            url = f"{base}/v1/chat/completions"
         payload = {
             "model": settings.openai_model,
             "temperature": 0.2,

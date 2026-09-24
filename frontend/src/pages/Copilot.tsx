@@ -6,9 +6,9 @@ import { api } from "../api";
 const samples = [
   "Which leads should I contact today?",
   "Show high-intent leads.",
-  "Why is this opportunity high priority?",
+  "What happened in recent call conversations?",
+  "What services are in our Knowledge Base?",
   "Which prospects requested callbacks?",
-  "What happened in today's campaigns?",
   "What should I do next?",
 ];
 

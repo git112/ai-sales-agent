@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Search, Sparkles, Target, ArrowUpRight, Globe, Calendar, ShieldCheck, CheckCircle2, X } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Search, Sparkles, Target, ArrowUpRight, Globe, Calendar, ShieldCheck, CheckCircle2, X, UserPlus, Check } from "lucide-react";
 import { api } from "../api";
 
 export default function Opportunities() {
@@ -10,6 +10,8 @@ export default function Opportunities() {
   const [sources, setSources] = useState<any[]>([]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [addingLead, setAddingLead] = useState<string | null>(null);
+  const [addedLeads, setAddedLeads] = useState<Record<string, string>>({});
 
   async function load() {
     const { data } = await api.get("/opportunities");
@@ -32,6 +34,20 @@ export default function Opportunities() {
       setErr(e.response?.data?.error?.message || "Search failed");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleAddLead(oppId: string, e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setAddingLead(oppId);
+    try {
+      const { data } = await api.post(`/opportunities/${oppId}/add-lead`);
+      setAddedLeads((prev) => ({ ...prev, [oppId]: data.lead.id }));
+    } catch (err: any) {
+      alert(err.response?.data?.error?.message || "Failed to add lead");
+    } finally {
+      setAddingLead(null);
     }
   }
 
@@ -187,13 +203,34 @@ export default function Opportunities() {
                   </div>
                 </div>
 
-                {/* Score badge */}
-                <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-6 shrink-0">
+                {/* Score badge + Add Lead */}
+                <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-6 shrink-0 gap-3">
                   <div className="text-center md:text-right">
                     <div className="text-2xl font-extrabold text-indigo-600">{o.score?.total ?? "—"}</div>
                     <div className="text-[11px] font-medium text-slate-400">Opportunity Score</div>
                   </div>
-                  <div className="mt-2 text-xs font-semibold text-indigo-600 flex items-center gap-1 group-hover:translate-x-0.5 transition">
+                  {addedLeads[o.id] ? (
+                    <button
+                      className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg"
+                      onClick={(e) => { e.preventDefault(); nav(`/app/leads/${addedLeads[o.id]}`); }}
+                    >
+                      <Check className="w-3.5 h-3.5" /> View Lead
+                    </button>
+                  ) : (
+                    <button
+                      className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition disabled:opacity-60"
+                      disabled={addingLead === o.id}
+                      onClick={(e) => handleAddLead(o.id, e)}
+                    >
+                      {addingLead === o.id ? (
+                        <span className="w-3.5 h-3.5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <UserPlus className="w-3.5 h-3.5" />
+                      )}
+                      Add to Leads
+                    </button>
+                  )}
+                  <div className="text-xs font-semibold text-indigo-600 flex items-center gap-1 group-hover:translate-x-0.5 transition">
                     <span>View Details</span>
                     <ArrowUpRight className="w-3.5 h-3.5" />
                   </div>

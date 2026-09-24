@@ -138,8 +138,12 @@ def scripts(locale: str) -> dict:
 
 
 def _kb(agent: dict, query: str) -> str:
+    from app.store import by_workspace
     docs = agent.get("knowledge_doc_ids") or []
-    chunks = knowledge_store.search(agent["workspace_id"], query, docs)
+    wid = agent.get("workspace_id")
+    if not docs and wid:
+        docs = [d["id"] for d in by_workspace("knowledge_documents", wid) if d.get("status") == "ready"]
+    chunks = knowledge_store.search(wid or "workspace_001", query, docs if docs else None)
     return chunks[0] if chunks else ""
 
 
@@ -196,7 +200,8 @@ def agent_reply(agent: dict, user_text: str, history: list[dict], locale: str = 
         reply = s["faq_price"] + (" " + kb[:180] if kb else "")
         outcome = "Connected"
     elif "what services" in t or "services do you" in t:
-        reply = s["faq_services"]
+        kb = _kb(agent, "services implementation consulting")
+        reply = s["faq_services"] + (" " + kb[:180] if kb else "")
         outcome = "Connected"
     elif "voicemail" in t or t.strip() == "":
         reply = agent.get("approved_voicemail") or s["voicemail"]
@@ -211,8 +216,14 @@ def agent_reply(agent: dict, user_text: str, history: list[dict], locale: str = 
         reply = s["callback"]
         outcome = "Callback Requested"
     else:
-        reply = s["qualify"]
-        outcome = "Connected"
+        # Check if user query matches any uploaded knowledge docs before fallback
+        kb = _kb(agent, user_text)
+        if kb and len(kb) > 30 and ("sharepoint" in t or "service" in t or "help" in t or "can you" in t or "do you" in t):
+            reply = f"Based on our approved knowledge: {kb[:240]}... Would you like to schedule a consultation?"
+            outcome = "Connected"
+        else:
+            reply = s["qualify"]
+            outcome = "Connected"
 
     qual = {
         "interest_level": interest,

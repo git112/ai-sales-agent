@@ -575,6 +575,7 @@ def search_opps(body: SearchIn, wid: str = Depends(workspace_id), user=Depends(c
             continue
         seen.add(key)
         opp_id = r.get("id") or new_id("opp")
+        r["id"] = opp_id  # Assign back to r so it's returned to frontend
         existing_opp = get_by_id("opportunities", opp_id)
         if not existing_opp:
             create_record(
@@ -736,6 +737,50 @@ def analyze_opp(oid: str, wid: str = Depends(workspace_id), user=Depends(current
         update_record("leads", o["lead_id"], {"opportunity_score": analysis["total"], "last_updated": utcnow()})
     audit(wid, user["id"], "analyze_opportunity", "opportunity", oid)
     return {"opportunity": updated, "analysis": analysis, "evidence": analysis["evidence"]}
+
+
+@app.post("/api/v1/opportunities/{oid}/add-lead")
+def add_lead_from_opp(oid: str, wid: str = Depends(workspace_id), user=Depends(current_user)):
+    o = get_by_id("opportunities", oid)
+    if not o or o.get("workspace_id") != wid:
+        raise HTTPException(404, "Opportunity not found")
+    # If already linked to a lead, return existing
+    if o.get("lead_id"):
+        existing = get_by_id("leads", o["lead_id"])
+        if existing:
+            return {"lead": existing, "created": False, "message": "Lead already exists for this opportunity"}
+    # Build lead from opportunity data
+    company_name = o.get("company_name") or o.get("company") or o.get("title") or "Unknown Company"
+    company_record = get_by_id("companies", o.get("company_id") or "")
+    contact_record = get_by_id("contacts", o.get("contact_id") or "") if o.get("contact_id") else None
+    lead_id = new_id("lead")
+    lead = create_record(
+        "leads",
+        {
+            "id": lead_id,
+            "workspace_id": wid,
+            "name": (contact_record or {}).get("name") or company_name,
+            "company": company_name,
+            "email": (contact_record or {}).get("email") or "",
+            "phone": (contact_record or {}).get("phone") or "",
+            "job_title": (contact_record or {}).get("title") or "",
+            "website": o.get("source_url") or (company_record or {}).get("website") or "",
+            "location": o.get("location") or (company_record or {}).get("location") or "",
+            "industry": o.get("industry") or (company_record or {}).get("industry") or "",
+            "notes": f"Auto-created from Opportunity: {o.get('title') or o.get('requirement') or ''}. Source: {o.get('source') or 'Opportunity Discovery'}",
+            "pipeline_stage": "New",
+            "intent_level": "Unknown",
+            "opportunity_id": oid,
+            "opportunity_score": (o.get("score") or {}).get("total"),
+            "source": o.get("source") or "Opportunity Discovery",
+            "created_at": utcnow(),
+            "last_updated": utcnow(),
+        },
+    )
+    # Link lead back to opportunity
+    update_record("opportunities", oid, {"lead_id": lead_id, "status": "lead_created"})
+    audit(wid, user["id"], "add_lead_from_opportunity", "lead", lead_id, {"opportunity_id": oid})
+    return {"lead": lead, "created": True, "message": f"Lead created from opportunity: {company_name}"}
 
 
 @app.get("/api/v1/buying-signals")

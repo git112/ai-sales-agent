@@ -10,6 +10,8 @@ export default function OpportunityDetail() {
   const [tab, setTab] = useState("Opportunity DNA");
   const [data, setData] = useState<any>(null);
   const [busy, setBusy] = useState(false);
+  const [addingLead, setAddingLead] = useState(false);
+  const [leadMsg, setLeadMsg] = useState("");
 
   async function load() {
     const { data } = await api.get(`/opportunities/${id}`);
@@ -52,16 +54,52 @@ export default function OpportunityDetail() {
         >
           Analyze
         </button>
+        {/* Add to Leads button */}
+        {data.lead ? (
+          <button
+            className="btn btn-ghost text-emerald-700 border-emerald-300 bg-emerald-50"
+            onClick={() => nav(`/app/leads/${data.lead.id}`)}
+          >
+            ✓ View Lead
+          </button>
+        ) : (
+          <button
+            className="btn btn-ghost"
+            disabled={addingLead}
+            onClick={async () => {
+              setAddingLead(true);
+              setLeadMsg("");
+              try {
+                const { data: res } = await api.post(`/opportunities/${id}/add-lead`);
+                setLeadMsg(res.message);
+                await load();
+              } catch (e: any) {
+                setLeadMsg(e.response?.data?.error?.message || "Failed to add lead");
+              } finally {
+                setAddingLead(false);
+              }
+            }}
+          >
+            {addingLead ? "Adding…" : "+ Add to Leads"}
+          </button>
+        )}
         <button
           className="btn btn-primary"
           onClick={async () => {
             const agents = (await api.get("/voice-agents")).data;
+            // Ensure a lead exists first
+            let leadId = data.lead?.id;
+            if (!leadId) {
+              const { data: res } = await api.post(`/opportunities/${id}/add-lead`);
+              leadId = res.lead.id;
+              await load();
+            }
             const { data: camp } = await api.post("/campaigns", {
-              name: `Qualify ${data.company?.name || "prospect"}`,
+              name: `Qualify ${data.opportunity?.company_name || data.opportunity?.company || "prospect"}`,
               campaign_type: "leads_plus_calling",
               objective: "Qualify SharePoint interest",
               agent_id: agents[0]?.id,
-              lead_ids: data.lead ? [data.lead.id] : [],
+              lead_ids: leadId ? [leadId] : [],
               language: "en",
               schedule: "immediate",
               timezone: "Asia/Kolkata",
@@ -72,6 +110,7 @@ export default function OpportunityDetail() {
         >
           Start campaign
         </button>
+        {leadMsg && <span className="text-sm text-emerald-700 font-medium self-center">{leadMsg}</span>}
       </div>
       <div className="flex flex-wrap gap-1 border-b border-gray-200">
         {tabs.map((t) => (
