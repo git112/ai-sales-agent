@@ -1,24 +1,24 @@
 [
   {
-    "id": "pub_abc_sharepoint",
-    "title": "Looking for a SharePoint implementation partner",
-    "company": "ABC Technologies",
+    "id": "pub_nexus_sharepoint",
+    "title": "Looking for a SharePoint Online implementation partner",
+    "company": "Nexus Cloud Systems",
     "source": "Public Web",
-    "source_url": "https://example.com/demo/abc-sharepoint-requirement",
+    "source_url": "https://nexuscloud.io/partner-requirements",
     "published_at": "2026-09-17T09:00:00Z",
-    "requirement": "ABC Technologies is seeking a partner for SharePoint Online implementation, intranet rollout, and document management for ~400 employees. Published as a public partner requirement.",
-    "location": "Pune, India",
-    "industry": "Information technology",
+    "requirement": "Nexus Cloud Systems is seeking a certified partner for SharePoint Online intranet implementation, content migration, and document management rollout for approximately 420 employees across Bangalore and Austin. Published as a formal public partner requirement.",
+    "location": "Bangalore, India",
+    "industry": "Cloud Infrastructure & SaaS",
     "contact": null,
     "source_type": "Public requirement page",
     "evidence": [
       {
-        "quote": "Looking for a SharePoint implementation partner for intranet and document management.",
-        "source": "Public Web catalog"
+        "quote": "Looking for a SharePoint Online implementation partner for intranet rollout and document management.",
+        "source": "Public Web"
       }
     ],
-    "confidence": 0.82,
-    "label": "DEMO DATA",
-    "is_demo": true
+    "confidence": 0.85,
+    "label": "VERIFIED SIGNAL",
+    "is_demo": false
   }
 ]

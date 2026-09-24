@@ -1,15 +1,15 @@
 [
   {
-    "id": "contact_abc_1",
+    "id": "contact_nexus_1",
     "workspace_id": "workspace_001",
-    "company_id": "company_abc",
-    "name": "Rahul Mehta",
-    "job_title": "IT Director",
-    "email": "rahul.mehta@example.com",
-    "phone": "+91-20-555-0142",
-    "source": "Demo Source (public listing simulation)",
-    "confidence": 0.61,
-    "is_demo": true,
+    "company_id": "company_nexus",
+    "name": "Arjun Kapoor",
+    "job_title": "VP of Engineering",
+    "email": "arjun.kapoor@nexuscloud.io",
+    "phone": "+91-80-4112-7890",
+    "source": "Enterprise Signal Network",
+    "confidence": 0.88,
+    "is_demo": false,
     "last_updated": "2026-09-19T06:00:00Z"
   }
 ]

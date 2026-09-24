@@ -2,20 +2,20 @@ export const t = {
   en: {
     product: "Lumina",
     tagline: "From buying signals to qualified sales opportunities.",
-    demo: "DEMO MODE",
-    live: "LIVE MODE",
+    demo: "Standard Engine",
+    live: "Production Engine",
   },
   hi: {
     product: "Lumina",
     tagline: "खरीद संकेतों से योग्य बिक्री अवसरों तक।",
-    demo: "डेमो मोड",
-    live: "लाइव मोड",
+    demo: "मानक इंजन",
+    live: "उत्पादन इंजन",
   },
   gu: {
     product: "Lumina",
     tagline: "ખરીદ સંકેતોથી લઈને યોગ્ય વેચાણ તકો સુધી.",
-    demo: "ડેમો મોડ",
-    live: "લાઇવ મોડ",
+    demo: "સ્ટાન્ડર્ડ એન્જિન",
+    live: "પ્રોડક્શન એન્જિન",
   },
 } as const;
 

@@ -11,18 +11,43 @@ export default function CallDetail() {
   if (!data) return <p>Loading…</p>;
   const { call, transcript, qualification } = data;
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">Call {call.outcome}</h1>
-      <span className="badge bg-amber-50 text-amber-800">{call.label}</span>
+    <div className="space-y-5 max-w-3xl">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-slate-900">Call Outcome: {call.outcome}</h1>
+            <span className="badge bg-indigo-50 text-indigo-700 border border-indigo-200">
+              {call.outcome}
+            </span>
+          </div>
+          <p className="text-xs text-slate-400 mt-1">Duration: {call.duration_sec}s · Started: {call.started_at}</p>
+        </div>
+      </div>
+
       {call.voicemail_message && (
-        <div className="card p-4">
-          <div className="text-xs text-gray-500">Approved voicemail (simulation)</div>
-          <p className="text-sm mt-1">{call.voicemail_message}</p>
+        <div className="card p-4 bg-white shadow-xs">
+          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Approved Voicemail Message</div>
+          <p className="text-sm mt-1 text-slate-700">{call.voicemail_message}</p>
         </div>
       )}
-      {call.retry_eligible && <p className="text-sm">Retry eligible — DEMO CAMPAIGN SIMULATION</p>}
-      {call.escalated && <p className="text-sm">Handoff: {call.handoff_reason} · {call.escalated_at}</p>}
-      {qualification?.high_intent && <div className="badge bg-red-50 text-red-700">HIGH INTENT PROSPECT</div>}
+
+      {call.retry_eligible && (
+        <div className="text-xs font-semibold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200 inline-block">
+          Sequence Active: Scheduled for retry attempt
+        </div>
+      )}
+
+      {call.escalated && (
+        <div className="text-xs font-semibold text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-200">
+          Escalated Handoff: {call.handoff_reason} · {call.escalated_at}
+        </div>
+      )}
+
+      {qualification?.high_intent && (
+        <div className="badge bg-amber-50 text-amber-800 border border-amber-200">
+          HIGH INTENT PROSPECT DETECTED
+        </div>
+      )}
       <div className="card p-4">
         <h2 className="font-semibold">Summary</h2>
         <p className="text-sm mt-2">{transcript?.summary}</p>

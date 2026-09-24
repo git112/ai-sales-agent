@@ -32,17 +32,25 @@ export default function Playground() {
   }
 
   return (
-    <div className="grid lg:grid-cols-3 gap-4">
-      <div className="lg:col-span-2 card p-4 flex flex-col h-[70vh]">
-        <div className="flex justify-between items-center mb-3">
-          <h1 className="font-semibold">Voice agent playground</h1>
-          <span className="badge bg-amber-50 text-amber-800">Demo Voice Simulation</span>
+    <div className="grid lg:grid-cols-3 gap-5">
+      <div className="lg:col-span-2 card p-5 flex flex-col h-[75vh] bg-white shadow-xs">
+        <div className="flex justify-between items-center mb-3 border-b border-slate-100 pb-3">
+          <div>
+            <h1 className="font-bold text-slate-900 text-lg">Interactive Voice Agent Studio</h1>
+            <p className="text-xs text-slate-500">Test conversational responses, qualification logic, and objection handling</p>
+          </div>
+          <span className="badge bg-indigo-50 text-indigo-700 border border-indigo-200">
+            Interactive Studio
+          </span>
         </div>
-        <select className="input max-w-[160px] mb-3" value={lang} onChange={(e) => setLang(e.target.value)}>
-          <option value="en">English</option>
-          <option value="hi">Hindi</option>
-          <option value="gu">Gujarati</option>
-        </select>
+        <div className="flex items-center gap-2 mb-3">
+          <label className="text-xs font-semibold text-slate-600">Language:</label>
+          <select className="input max-w-[140px] h-9 text-xs font-medium" value={lang} onChange={(e) => setLang(e.target.value)}>
+            <option value="en">English (US)</option>
+            <option value="hi">Hindi (IN)</option>
+            <option value="gu">Gujarati (IN)</option>
+          </select>
+        </div>
         <div className="flex-1 overflow-auto space-y-2">
           {history.map((m, i) => (
             <div key={i} className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${m.speaker === "agent" ? "bg-blue-50" : "bg-gray-100 ml-auto"}`}>

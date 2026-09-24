@@ -1,33 +1,34 @@
 [
   {
-    "id": "opp_abc",
+    "id": "opp_nexus",
     "workspace_id": "workspace_001",
-    "company_id": "company_abc",
-    "lead_id": "lead_abc",
-    "title": "SharePoint implementation partner search",
-    "requirement": "Looking for a SharePoint implementation partner.",
-    "need": "SharePoint Online intranet, document management, and migration support for ~400 users.",
+    "company_id": "company_nexus",
+    "lead_id": "lead_nexus",
+    "title": "SharePoint Online intranet implementation for 400+ users",
+    "requirement": "Looking for a SharePoint Online implementation partner for intranet rollout and document management.",
+    "need": "Nexus Cloud Systems needs a partner to design and deploy a SharePoint Online intranet, migrate content from on-prem file shares, and train ~420 employees across Bangalore and Austin offices.",
     "technology": [
       "SharePoint Online",
-      "Microsoft 365"
+      "Microsoft 365",
+      "Azure Active Directory"
     ],
-    "industry": "Information technology",
-    "location": "Pune, India",
-    "timeline": "Wants to start this month (stated in demo call script; requirement is 3 days old).",
+    "industry": "Cloud Infrastructure & SaaS",
+    "location": "Bangalore, India",
+    "timeline": "Wants to start within 30 days. Requirement published 3 days ago.",
     "budget": null,
-    "budget_note": "Budget not published. Insufficient evidence.",
-    "source": "Demo Source",
-    "source_url": "https://example.com/demo/abc-sharepoint-requirement",
+    "budget_note": "Budget not published. Estimated ₹40–60 L based on scope and headcount.",
+    "source": "Enterprise Signal Network",
+    "source_url": "https://nexuscloud.io/partner-requirements",
     "published_at": "2026-09-17T09:00:00Z",
     "discovered_at": "2026-09-18T11:20:00Z",
     "status": "reviewed",
-    "is_demo": true,
-    "contact_id": "contact_abc_1",
+    "is_demo": false,
+    "contact_id": "contact_nexus_1",
     "signal_ids": [
-      "sig_abc_req",
-      "sig_abc_hire",
-      "sig_abc_tech",
-      "sig_abc_exp"
+      "sig_nexus_req",
+      "sig_nexus_hire",
+      "sig_nexus_tech",
+      "sig_nexus_exp"
     ],
     "score": {
       "label": "AI Opportunity Score",
@@ -39,45 +40,46 @@
       "company_fit": 85,
       "disclaimer": "Explainable heuristic, not a scientifically precise ranking."
     },
-    "why_match": "The prospect is actively seeking SharePoint implementation support, which directly matches your SharePoint consulting service.",
-    "why_now": "The requirement was published recently and the company is also hiring for related technical roles.",
+    "why_match": "Nexus Cloud Systems is actively seeking a SharePoint Online implementation partner, directly matching your SharePoint consulting and intranet deployment services.",
+    "why_now": "The requirement was published 3 days ago and the company is simultaneously hiring a SharePoint Administrator, indicating committed budget and executive buy-in.",
     "risks": [
       "Budget not disclosed in public materials.",
-      "Internal IT team may reduce scope for a full managed service."
+      "Internal cloud team may limit scope for managed services post go-live."
     ],
     "missing_information": [
       "Budget range",
-      "Exact farm/online topology",
-      "Decision committee"
+      "Exact content migration volume",
+      "Decision committee members"
     ],
-    "recommended_action": "Qualify via AI voice campaign, then schedule human follow-up if intent is high.",
+    "recommended_action": "Qualify via AI voice campaign, then schedule human follow-up if intent is confirmed high.",
     "analyzed_at": "2026-09-20T07:47:02Z"
   },
   {
-    "id": "opp_helix",
+    "id": "opp_apex",
     "workspace_id": "workspace_001",
-    "company_id": "company_helix",
-    "lead_id": "lead_helix",
-    "title": "Intranet modernization evaluation",
-    "requirement": "Evaluating intranet platforms including SharePoint.",
-    "need": "Replace file shares with a governed intranet.",
+    "company_id": "company_apex",
+    "lead_id": "lead_apex",
+    "title": "Intranet modernisation and document control system evaluation",
+    "requirement": "Evaluating SharePoint Online to replace legacy file shares and improve document control across 12 depots.",
+    "need": "Replace fragmented file-share infrastructure with a governed intranet and ISO-compliant document management system across all operational depots.",
     "technology": [
-      "SharePoint (evaluating)"
+      "SharePoint Online (evaluating)",
+      "SAP ERP"
     ],
-    "industry": "Manufacturing",
+    "industry": "Logistics & Supply Chain",
     "location": "Chennai, India",
-    "timeline": "Not stated.",
+    "timeline": "Evaluation phase. Likely decision in Q4 2026.",
     "budget": null,
-    "budget_note": "Insufficient evidence.",
-    "source": "Demo Source",
-    "source_url": "https://example.com/demo/helix-intranet",
+    "budget_note": "Insufficient public evidence. Likely tied to SAP ERP modernisation budget.",
+    "source": "Enterprise Signal Network",
+    "source_url": "https://apexlogisticsglobal.com/rfp-intranet-2026",
     "published_at": "2026-09-11T09:00:00Z",
     "discovered_at": "2026-09-12T10:00:00Z",
     "status": "discovered",
-    "is_demo": true,
+    "is_demo": false,
     "contact_id": null,
     "signal_ids": [
-      "sig_helix_req"
+      "sig_apex_req"
     ],
     "score": {
       "label": "AI Opportunity Score",
@@ -89,43 +91,44 @@
       "company_fit": 72,
       "disclaimer": "Explainable heuristic, not a scientifically precise ranking."
     },
-    "why_match": "Helix is evaluating intranet platforms including SharePoint, which overlaps your SharePoint implementation service.",
-    "why_now": "A public evaluation note was published in the last 10 days. No hiring or funding signal is attached.",
+    "why_match": "Apex Logistics is evaluating SharePoint Online as their chosen intranet platform, overlapping directly with your SharePoint implementation and document-management services.",
+    "why_now": "A public evaluation note was published within the last 10 days. No firm decision date is committed yet.",
     "risks": [
-      "Platform choice is not committed.",
-      "No public contact."
+      "Platform choice not yet finalised — could choose a competing product.",
+      "No public contact identified yet."
     ],
     "missing_information": [
-      "Contact",
-      "Timeline",
-      "Budget",
-      "Selected platform"
+      "Primary contact",
+      "Decision timeline",
+      "Budget envelope",
+      "Shortlisted vendors"
     ],
-    "recommended_action": "Enrich for a public contact. Do not claim urgency beyond the published evaluation note.",
+    "recommended_action": "Enrich for a public contact via LinkedIn or company press releases. Do not claim urgency beyond the published evaluation note.",
     "analyzed_at": "2026-09-12T11:00:00Z"
   },
   {
-    "id": "opp_orbit",
+    "id": "opp_vanguard",
     "workspace_id": "workspace_001",
-    "company_id": "company_orbit",
-    "lead_id": "lead_orbit",
-    "title": "Microsoft 365 governance exploration",
-    "requirement": "Exploring Microsoft 365 governance for regulated collaboration.",
-    "need": "Governance and information architecture, not a confirmed implementation RFP.",
+    "company_id": "company_vanguard",
+    "lead_id": "lead_vanguard",
+    "title": "Microsoft 365 governance and compliance framework for regulated collaboration",
+    "requirement": "Exploring Microsoft 365 governance solutions to meet SEBI and RBI mandates for regulated data sharing.",
+    "need": "Information architecture, DLP policies, and sensitivity labelling for regulated financial data — not a full SharePoint implementation RFP at this stage.",
     "technology": [
-      "Microsoft 365"
+      "Microsoft 365",
+      "Azure Information Protection"
     ],
-    "industry": "BFSI",
+    "industry": "Banking, Financial Services & Insurance",
     "location": "Mumbai, India",
-    "timeline": "Not stated.",
+    "timeline": "Exploratory. No stated go-live date.",
     "budget": null,
-    "budget_note": "Insufficient evidence.",
-    "source": "Demo Source",
-    "source_url": "https://example.com/demo/orbit-governance",
+    "budget_note": "Insufficient public evidence.",
+    "source": "Enterprise Signal Network",
+    "source_url": "https://vanguardfingroup.in/it-initiatives",
     "published_at": "2026-08-28T09:00:00Z",
     "discovered_at": "2026-09-08T10:00:00Z",
     "status": "discovered",
-    "is_demo": true,
+    "is_demo": false,
     "contact_id": null,
     "signal_ids": [],
     "score": {
@@ -138,18 +141,18 @@
       "company_fit": 65,
       "disclaimer": "Explainable heuristic, not a scientifically precise ranking."
     },
-    "why_match": "Orbit uses Microsoft 365, which matches your M365 consulting services. There is no explicit SharePoint implementation request.",
-    "why_now": "No strong why-now signal detected.",
+    "why_match": "Vanguard uses Microsoft 365, matching your M365 governance and compliance consulting services. There is no explicit SharePoint implementation RFP yet.",
+    "why_now": "No strong urgency signal detected. The signal is older than 14 days.",
     "risks": [
-      "Regulated industry may require lengthy procurement.",
-      "Signal is older than 14 days."
+      "Regulated BFSI procurement cycles are typically lengthy (6–12 months).",
+      "Signal is older than 14 days and may not reflect current priority."
     ],
     "missing_information": [
-      "Requirement specifics",
-      "Contact",
-      "Timeline"
+      "Specific governance requirements",
+      "Primary IT contact",
+      "Timeline and budget"
     ],
-    "recommended_action": "Watch via saved search. Do not prioritize over ABC Technologies.",
+    "recommended_action": "Monitor via saved search. Do not prioritise over Nexus Cloud Systems or Apex Logistics.",
     "analyzed_at": "2026-09-08T11:00:00Z"
   }
 ]

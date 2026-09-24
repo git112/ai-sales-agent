@@ -311,10 +311,10 @@ class DemoAIProvider:
                 for x in uniq:
                     cite("lead", x)
             else:
-                abc = next((l for l in leads if l.get("id") == "lead_abc"), None)
-                if abc:
-                    answer = "No high-intent leads are recorded yet. Qualify ABC Technologies via a demo campaign to generate intent."
-                    cite("lead", abc)
+                nexus = next((l for l in leads if l.get("id") == "lead_nexus"), None)
+                if nexus:
+                    answer = "No high-intent leads are recorded yet. Qualify Nexus Cloud Systems via an automated outreach campaign to generate intent."
+                    cite("lead", nexus)
                 else:
                     answer = "No high-intent leads are recorded yet."
         elif "callback" in q:

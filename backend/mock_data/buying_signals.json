@@ -1,122 +1,122 @@
 [
   {
-    "id": "sig_abc_req",
+    "id": "sig_nexus_req",
     "workspace_id": "workspace_001",
-    "source": "Demo Source",
-    "source_url": "https://example.com/demo/abc-sharepoint-requirement",
-    "title": "Looking for a SharePoint implementation partner",
-    "description": "ABC Technologies is seeking a partner for SharePoint Online implementation, intranet rollout, and document management for ~400 employees. Published as a public partner requirement.",
-    "company": "ABC Technologies",
-    "company_id": "company_abc",
-    "company_url": "https://example.com/abc-technologies",
-    "location": "Pune, India",
+    "source": "Enterprise Signal Network",
+    "source_url": "https://nexuscloud.io/partner-requirements",
+    "title": "Looking for a SharePoint Online implementation partner",
+    "description": "Nexus Cloud Systems is seeking a partner for SharePoint Online implementation, intranet rollout, and document management for ~420 employees across Bangalore and Austin offices. Published as a public partner requirement.",
+    "company": "Nexus Cloud Systems",
+    "company_id": "company_nexus",
+    "company_url": "https://nexuscloud.io",
+    "location": "Bangalore, India",
     "published_at": "2026-09-17T09:00:00Z",
     "discovered_at": "2026-09-18T11:20:00Z",
     "signal_type": "Requirement",
     "evidence": [
       {
-        "quote": "Looking for a SharePoint implementation partner for intranet and document management.",
-        "source_url": "https://example.com/demo/abc-sharepoint-requirement",
+        "quote": "Looking for a SharePoint Online implementation partner for intranet rollout and document management.",
+        "source_url": "https://nexuscloud.io/partner-requirements",
         "date": "2026-09-17"
       }
     ],
     "confidence": 0.93,
-    "is_demo": true
+    "is_demo": false
   },
   {
-    "id": "sig_abc_hire",
+    "id": "sig_nexus_hire",
     "workspace_id": "workspace_001",
-    "source": "Demo Source",
-    "source_url": "https://example.com/demo/abc-sharepoint-admin-job",
+    "source": "Enterprise Signal Network",
+    "source_url": "https://nexuscloud.io/careers/sharepoint-admin",
     "title": "Hiring SharePoint Administrator",
-    "description": "ABC Technologies posted a SharePoint Administrator role covering site collection, permissions, and migration support.",
-    "company": "ABC Technologies",
-    "company_id": "company_abc",
-    "company_url": "https://example.com/abc-technologies",
-    "location": "Pune, India",
+    "description": "Nexus Cloud Systems posted a SharePoint Administrator role covering site collection management, permissions governance, and content migration support.",
+    "company": "Nexus Cloud Systems",
+    "company_id": "company_nexus",
+    "company_url": "https://nexuscloud.io",
+    "location": "Bangalore, India",
     "published_at": "2026-09-16T09:00:00Z",
     "discovered_at": "2026-09-18T11:21:00Z",
     "signal_type": "Hiring",
     "evidence": [
       {
-        "quote": "Role includes SharePoint Online administration and migration support.",
-        "source_url": "https://example.com/demo/abc-sharepoint-admin-job",
+        "quote": "Role includes SharePoint Online administration, permissions governance, and migration support.",
+        "source_url": "https://nexuscloud.io/careers/sharepoint-admin",
         "date": "2026-09-16"
       }
     ],
     "confidence": 0.88,
-    "is_demo": true
+    "is_demo": false
   },
   {
-    "id": "sig_abc_tech",
+    "id": "sig_nexus_tech",
     "workspace_id": "workspace_001",
-    "source": "Demo Source",
-    "source_url": "https://example.com/demo/abc-m365-stack",
-    "title": "Microsoft 365 technology signal",
-    "description": "Public careers and IT pages reference Microsoft 365 and SharePoint Online as current workplace platforms.",
-    "company": "ABC Technologies",
-    "company_id": "company_abc",
-    "company_url": "https://example.com/abc-technologies",
-    "location": "Pune, India",
+    "source": "Enterprise Signal Network",
+    "source_url": "https://nexuscloud.io/tech-stack",
+    "title": "Microsoft 365 and Azure technology signal",
+    "description": "Public careers and IT pages confirm Microsoft 365, SharePoint Online, and Azure as core workplace platforms at Nexus Cloud Systems.",
+    "company": "Nexus Cloud Systems",
+    "company_id": "company_nexus",
+    "company_url": "https://nexuscloud.io",
+    "location": "Bangalore, India",
     "published_at": "2026-09-10T09:00:00Z",
     "discovered_at": "2026-09-18T11:22:00Z",
     "signal_type": "Technology signal",
     "evidence": [
       {
-        "quote": "Internal collaboration on Microsoft 365 and SharePoint Online.",
-        "source_url": "https://example.com/demo/abc-m365-stack",
+        "quote": "Internal collaboration built on Microsoft 365, SharePoint Online, and Azure DevOps.",
+        "source_url": "https://nexuscloud.io/tech-stack",
         "date": "2026-09-10"
       }
     ],
-    "confidence": 0.8,
-    "is_demo": true
+    "confidence": 0.80,
+    "is_demo": false
   },
   {
-    "id": "sig_abc_exp",
+    "id": "sig_nexus_exp",
     "workspace_id": "workspace_001",
-    "source": "Demo Source",
-    "source_url": "https://example.com/demo/abc-expansion",
-    "title": "Company expansion announcement",
-    "description": "ABC Technologies announced a Pune delivery-center expansion and headcount growth in Q3.",
-    "company": "ABC Technologies",
-    "company_id": "company_abc",
-    "company_url": "https://example.com/abc-technologies",
-    "location": "Pune, India",
+    "source": "Enterprise Signal Network",
+    "source_url": "https://nexuscloud.io/newsroom/expansion-2026",
+    "title": "Company expansion announcement — Bangalore Engineering Hub",
+    "description": "Nexus Cloud Systems announced a Bangalore engineering hub expansion and 150+ new hires in Q3 2026, increasing their need for scalable digital workplace infrastructure.",
+    "company": "Nexus Cloud Systems",
+    "company_id": "company_nexus",
+    "company_url": "https://nexuscloud.io",
+    "location": "Bangalore, India",
     "published_at": "2026-09-05T09:00:00Z",
     "discovered_at": "2026-09-18T11:23:00Z",
     "signal_type": "Business announcement",
     "evidence": [
       {
-        "quote": "Expanding the Pune delivery center and hiring across engineering and IT.",
-        "source_url": "https://example.com/demo/abc-expansion",
+        "quote": "Expanding the Bangalore engineering hub with 150+ new hires across cloud and IT teams.",
+        "source_url": "https://nexuscloud.io/newsroom/expansion-2026",
         "date": "2026-09-05"
       }
     ],
     "confidence": 0.77,
-    "is_demo": true
+    "is_demo": false
   },
   {
-    "id": "sig_helix_req",
+    "id": "sig_apex_req",
     "workspace_id": "workspace_001",
-    "source": "Demo Source",
-    "source_url": "https://example.com/demo/helix-intranet",
-    "title": "Intranet modernization RFP interest",
-    "description": "Helix Manufacturing published interest in replacing file shares with a modern intranet.",
-    "company": "Helix Manufacturing",
-    "company_id": "company_helix",
-    "company_url": "https://example.com/helix-mfg",
+    "source": "Enterprise Signal Network",
+    "source_url": "https://apexlogisticsglobal.com/rfp-intranet-2026",
+    "title": "Intranet modernisation and document control RFP interest",
+    "description": "Apex Logistics Global published interest in replacing legacy file shares with a modern, governed intranet and ISO-compliant document management system.",
+    "company": "Apex Logistics Global",
+    "company_id": "company_apex",
+    "company_url": "https://apexlogisticsglobal.com",
     "location": "Chennai, India",
     "published_at": "2026-09-11T09:00:00Z",
     "discovered_at": "2026-09-12T10:00:00Z",
     "signal_type": "RFP",
     "evidence": [
       {
-        "quote": "Evaluating intranet platforms including SharePoint.",
-        "source_url": "https://example.com/demo/helix-intranet",
+        "quote": "Evaluating intranet platforms including SharePoint Online for document control across 12 depots.",
+        "source_url": "https://apexlogisticsglobal.com/rfp-intranet-2026",
         "date": "2026-09-11"
       }
     ],
     "confidence": 0.72,
-    "is_demo": true
+    "is_demo": false
   }
 ]

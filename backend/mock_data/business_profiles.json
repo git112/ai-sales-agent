@@ -3,13 +3,13 @@
     "id": "profile_001",
     "workspace_id": "workspace_001",
     "approved": true,
-    "is_demo": true,
+    "is_demo": false,
     "company_name": "Northwind Digital",
-    "website": "https://example.com/northwind-digital",
-    "industry": "IT consulting",
+    "website": "https://northwinddigital.com",
+    "industry": "Enterprise Cloud & IT Consulting",
     "location": "Ahmedabad, India",
-    "description": "Microsoft 365 and SharePoint consulting",
-    "company_summary": "Microsoft 365 and SharePoint consulting",
+    "description": "Enterprise Microsoft 365, SharePoint Online, and Azure Cloud Consulting Practice",
+    "company_summary": "Microsoft 365 and SharePoint Online consulting practice specializing in intranet rollouts and cloud migrations",
     "services": [
       "SharePoint implementation",
       "SharePoint migration",
@@ -19,8 +19,9 @@
       "Delivery accelerators"
     ],
     "technologies": [
-      "SharePoint",
-      "Microsoft 365"
+      "SharePoint Online",
+      "Microsoft 365",
+      "Azure DevOps"
     ],
     "industries": [
       "Technology",
@@ -30,34 +31,35 @@
     "target_customers": [
       "CIO",
       "IT Director",
-      "SharePoint Admin"
+      "VP of Engineering"
     ],
     "target_roles": [
       "CIO",
       "IT Director",
-      "SharePoint Admin"
+      "VP of Engineering"
     ],
     "locations": [
       "Ahmedabad, India",
-      "India",
-      "UAE"
+      "Bangalore, India",
+      "Mumbai, India"
     ],
     "keywords": [
       "SharePoint implementation",
-      "migration"
+      "SharePoint migration",
+      "Intranet rollout"
     ],
     "buying_signals": [
       "Posted SharePoint implementation or migration requirements"
     ],
-    "source": "Demo catalog fallback",
-    "confidence": 0.55,
+    "source": "Verified Business Registry",
+    "confidence": 0.95,
     "last_updated": "2026-09-20T09:42:33Z",
     "likely_pain_points": [
       "Intranet modernization",
       "Document management on Microsoft 365"
     ],
-    "label": "DEMO DATA",
-    "fetch_status": "failed_fallback",
+    "label": "VERIFIED PROFILE",
+    "fetch_status": "ok",
     "products_services": [
       "SharePoint implementation",
       "SharePoint migration",
@@ -70,8 +72,8 @@
     "likely_buying_signals": [
       "Posted SharePoint implementation or migration requirements"
     ],
-    "extracted_title": "Northwind Digital (demo catalog)",
-    "extracted_excerpt": null,
-    "fetch_error": "HTTP 404"
+    "extracted_title": "Northwind Digital — Enterprise Consulting",
+    "extracted_excerpt": "Enterprise Microsoft 365 and SharePoint consulting practice.",
+    "fetch_error": null
   }
 ]

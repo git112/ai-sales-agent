@@ -6,19 +6,19 @@ export default function Onboarding() {
   const nav = useNavigate();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
-    company_name: "Northwind Digital",
-    website: "https://example.com/northwind-digital",
-    description: "Microsoft 365 and SharePoint consulting: implementation, migration, integration, custom development, enterprise document management.",
-    industry: "IT consulting",
-    location: "Ahmedabad, India",
-    services: "SharePoint implementation, SharePoint migration, Microsoft 365 consulting",
-    products: "Delivery accelerators",
-    technologies: "SharePoint, Microsoft 365",
-    target_industries: "Technology, Manufacturing, BFSI",
-    target_locations: "India, UAE",
-    company_size: "201-500",
-    target_roles: "CIO, IT Director, SharePoint Admin",
-    keywords: "SharePoint implementation, migration",
+    company_name: "Nexus Cloud Systems",
+    website: "https://nexuscloud.io",
+    description: "Enterprise cloud infrastructure, AI-driven automation, and hybrid multi-cloud solutions for Fortune 500 and high-growth technology companies.",
+    industry: "Cloud Infrastructure & AI",
+    location: "San Francisco, CA",
+    services: "Cloud Migration, Infrastructure Automation, AI Platform Deployment, DevSecOps",
+    products: "Nexus Orbit Platform, CloudSync AI, SecureEdge Gateway",
+    technologies: "Kubernetes, Terraform, AWS, Azure, GCP, Python, Go",
+    target_industries: "Technology, Financial Services, Healthcare, Retail",
+    target_locations: "USA, UK, Singapore, UAE",
+    company_size: "501-2000",
+    target_roles: "CTO, VP Engineering, Head of Cloud, DevOps Director",
+    keywords: "cloud migration, infrastructure automation, AI deployment",
   });
   const [profile, setProfile] = useState<any>(null);
   const [msg, setMsg] = useState("");
@@ -76,12 +76,18 @@ export default function Onboarding() {
 
   return (
     <div className="max-w-3xl">
-      <h1 className="text-2xl font-semibold">AI-powered setup</h1>
-      <p className="text-gray-500 text-sm mt-1">Company URL analysis plus form input. Approve the structured profile before discovery.</p>
-      <div className="flex gap-2 mt-4 text-xs">
-        {[1, 2, 3, 4, 5].map((n) => (
-          <span key={n} className={`px-2 py-1 rounded ${step === n ? "bg-blue-700 text-white" : "bg-gray-200"}`}>
-            {n < 5 ? `Step ${n}` : "AI"}
+      <h1 className="text-2xl font-semibold">AI-Powered Business Setup</h1>
+      <p className="text-gray-500 text-sm mt-1">Configure your company profile and let the AI structure your go-to-market intelligence. Approve the profile before activating discovery.</p>
+      <div className="flex gap-2 mt-4 text-xs flex-wrap">
+        {[
+          { n: 1, label: "Company" },
+          { n: 2, label: "Products" },
+          { n: 3, label: "Targets" },
+          { n: 4, label: "Knowledge" },
+          { n: 5, label: "AI Review" },
+        ].map(({ n, label }) => (
+          <span key={n} className={`px-3 py-1 rounded-full font-medium ${step === n ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-500"}`}>
+            {label}
           </span>
         ))}
       </div>
@@ -149,26 +155,36 @@ export default function Onboarding() {
       )}
       {step === 5 && profile && (
         <div className="card p-6 mt-6 space-y-3">
-          <h2 className="font-semibold">{msg || "Here's what AI understood about your business."}</h2>
-          {profile.label && <span className="badge bg-amber-50 text-amber-800">{profile.label}</span>}
-          <p className="text-xs text-gray-500">
-            Fetch: {profile.fetch_status || "form"} {profile.fetch_error ? `· ${profile.fetch_error}` : ""}
-          </p>
+          <h2 className="font-semibold">{msg || "AI has structured your business intelligence profile."}</h2>
+          {profile.confidence && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-gray-500">AI Confidence:</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                profile.confidence >= 0.8 ? "bg-emerald-100 text-emerald-700" :
+                profile.confidence >= 0.5 ? "bg-amber-100 text-amber-700" :
+                "bg-slate-100 text-slate-600"
+              }`}>
+                {Math.round((profile.confidence || 0) * 100)}% match
+              </span>
+            </div>
+          )}
+          {profile.fetch_error && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-1.5">
+              ⚠ {profile.fetch_error} — Profile built from form data.
+            </p>
+          )}
           <textarea className="input h-28" value={profile.company_summary || ""} onChange={(e) => setProfile({ ...profile, company_summary: e.target.value })} />
           <p className="text-sm">
-            <strong>Services:</strong> {(profile.services || profile.products_services || []).join(", ") || "Not detected"}
+            <strong>Services:</strong> {(profile.services || profile.products_services || []).join(", ") || "—"}
           </p>
           <p className="text-sm">
-            <strong>Technologies:</strong> {(profile.technologies || []).join(", ") || "Not detected"}
+            <strong>Technologies:</strong> {(profile.technologies || []).join(", ") || "—"}
           </p>
           <p className="text-sm">
-            <strong>Pain points:</strong> {(profile.likely_pain_points || []).join("; ") || "Not detected"}
+            <strong>Pain points:</strong> {(profile.likely_pain_points || []).join("; ") || "—"}
           </p>
           <p className="text-sm">
-            <strong>Buying signals:</strong> {(profile.buying_signals || profile.likely_buying_signals || []).join("; ") || "Not detected"}
-          </p>
-          <p className="text-xs text-gray-500">
-            Source: {profile.source} · Confidence {profile.confidence} · Missing fields stay Not detected.
+            <strong>Buying signals:</strong> {(profile.buying_signals || profile.likely_buying_signals || []).join("; ") || "—"}
           </p>
           <button
             className="btn btn-primary"

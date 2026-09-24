@@ -7,7 +7,7 @@ import { useAuth } from "../auth";
 export function Login() {
   const { login } = useAuth();
   const nav = useNavigate();
-  const [email, setEmail] = useState("demo@example.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   return (
@@ -30,9 +30,7 @@ export function Login() {
         {err && <p className="text-sm text-red-600">{err}</p>}
         <button className="btn btn-primary w-full">Login</button>
       </form>
-      <p className="text-xs text-gray-500 mt-4">
-        Demo: demo@example.com / Demo123! · Admin: admin@example.com / Admin123!
-      </p>
+
       <Link to="/forgot-password" className="text-sm text-blue-700 mt-3 inline-block">
         Forgot password
       </Link>

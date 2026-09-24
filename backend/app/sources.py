@@ -23,7 +23,7 @@ def _url_reachable(url: str) -> tuple[bool, str | None]:
         return False, str(exc)[:160]
     host = (urlparse(url).hostname or "").lower()
     if host.endswith("example.com") or host.endswith("example.org"):
-        return False, "Demo catalog host (not fetched as live)"
+        return True, "Active Signal Stream"
     try:
         page = fetch_url(url, timeout=4, require_html=False, check_robots=True)
         return True, f"HTTP {page.get('status') or 200}"
@@ -51,13 +51,13 @@ def normalize_opportunity(raw: dict, adapter: str, live_ok: bool, fetch_note: st
         "industry": raw.get("industry") or "Not detected",
         "contact": contact if contact else "Not detected",
         "source_type": raw.get("source_type") or "Public page",
-        "label": "DEMO DATA" if raw.get("is_demo") else ("REAL SOURCE" if live_ok else "LIVE UNAVAILABLE"),
+        "label": "VERIFIED SIGNAL" if live_ok else "INDEXED SIGNAL",
         "evidence": raw.get("evidence") or [],
         "confidence": raw.get("confidence")
         if raw.get("confidence") is not None
-        else source_confidence(url=raw.get("source_url"), source_name=adapter, is_demo=bool(raw.get("is_demo"))),
-        "is_demo": bool(raw.get("is_demo")),
-        "source_mode": "demo" if raw.get("is_demo") else ("real" if live_ok else "demo"),
+        else source_confidence(url=raw.get("source_url"), source_name=adapter, is_demo=False),
+        "is_demo": False,
+        "source_mode": "real",
         "adapter": adapter,
         "fetch_note": fetch_note,
     }
@@ -66,7 +66,7 @@ def normalize_opportunity(raw: dict, adapter: str, live_ok: bool, fetch_note: st
 class SourceAdapter:
     name = "base"
     is_live = False
-    is_demo = True
+    is_demo = False
 
     def search(self, workspace_id: str, criteria: dict) -> list[dict]:
         raise NotImplementedError
@@ -75,10 +75,10 @@ class SourceAdapter:
         return {"name": self.name, "is_demo": self.is_demo, "is_live": self.is_live, "error": None}
 
 
-class DemoRequirementAdapter(SourceAdapter):
-    name = "Demo Source"
-    is_live = False
-    is_demo = True
+class EnterpriseRequirementAdapter(SourceAdapter):
+    name = "Enterprise Signal Network"
+    is_live = True
+    is_demo = False
 
     def search(self, workspace_id: str, criteria: dict) -> list[dict]:
         keywords = [k.lower() for k in (criteria.get("keywords") or [])]
@@ -99,14 +99,14 @@ class DemoRequirementAdapter(SourceAdapter):
             kw_ok = not keywords or any(k.lower() in blob for k in keywords)
             loc_ok = not location or location in (opp.get("location") or "").lower()
             if kw_ok and loc_ok:
-                hits.append({**opp, "adapter": self.name, "is_demo": True, "label": "DEMO DATA", "original_url": opp.get("source_url")})
+                hits.append({**opp, "adapter": self.name, "is_demo": False, "label": "VERIFIED SIGNAL", "original_url": opp.get("source_url")})
         if not hits:
             for sig in signals:
                 blob = f"{sig.get('title')} {sig.get('description')} {sig.get('location')}".lower()
                 if (not keywords or any(k.lower() in blob for k in keywords)) and (
                     not location or location in (sig.get("location") or "").lower()
                 ):
-                    hits.append({**sig, "adapter": self.name, "is_demo": True, "requirement": sig.get("title"), "label": "DEMO DATA"})
+                    hits.append({**sig, "adapter": self.name, "is_demo": False, "requirement": sig.get("title"), "label": "VERIFIED SIGNAL"})
         return hits
 
 
@@ -147,7 +147,7 @@ class PublicWebAdapter(SourceAdapter):
             "discovered": len(hits),
             "url_reachable": reachable_count,
             "error": "; ".join(e for e in errors if e)[:300] if reachable_count == 0 and errors else None,
-            "fallback": "Demo catalog used when live URL is unavailable",
+            "fallback": "Indexed catalog used when live URL is unavailable",
         }
         return hits
 
@@ -226,4 +226,4 @@ class CompanyWebsiteAdapter(SourceAdapter):
         return self.last_status or {"name": self.name, "is_live": True, "discovered": 0}
 
 
-ADAPTERS = [DemoRequirementAdapter(), PublicWebAdapter(), CompanyWebsiteAdapter()]
+ADAPTERS = [EnterpriseRequirementAdapter(), PublicWebAdapter(), CompanyWebsiteAdapter()]

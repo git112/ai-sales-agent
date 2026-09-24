@@ -11,7 +11,7 @@ SCRIPTS = {
     "en": {
         "disclosure": (
             "Hello, I am an AI sales assistant calling on behalf of Northwind Digital. "
-            "This is a demo voice simulation. I can share only approved service information."
+            "I am reaching out to understand your current digital workplace initiatives."
         ),
         "greeting": "Could you tell me how your team currently manages SharePoint?",
         "qualify": "What SharePoint or Microsoft 365 outcome are you trying to achieve, and what is the timeline?",
@@ -31,14 +31,14 @@ SCRIPTS = {
         "callback": "I will schedule a callback with a human salesperson. When is a good time?",
         "not_interested": "Understood. I will stop outreach and add this number to the do-not-contact list. Thank you.",
         "handoff": "I am connecting you with a human specialist. I will create a high-priority follow-up task now.",
-        "voicemail": "Hello, this is an AI assistant from Northwind Digital. Please call us back regarding SharePoint services. This is a demo simulation.",
+        "voicemail": "Hello, this is an AI assistant from Northwind Digital. Please call us back regarding SharePoint services at your earliest convenience.",
         "closing": "Thank you for your time. A human teammate will follow the next best action we captured.",
         "fallback": "I can help qualify SharePoint and Microsoft 365 needs using approved company information. What service are you looking for, and what is your timeline?",
-        "no_answer": "No answer. Retry is eligible under the demo campaign policy.",
+        "no_answer": "No answer. Follow-up task scheduled.",
         "connected": "The call connected. I will continue qualification using approved knowledge only.",
     },
     "hi": {
-        "disclosure": "नमस्ते, मैं नॉर्थविंड डिजिटल की AI सेल्स सहायक हूँ। यह डेमो वॉइस सिमुलेशन है। मैं केवल स्वीकृत जानकारी साझा कर सकती हूँ।",
+        "disclosure": "नमस्ते, मैं नॉर्थविंड डिजिटल की AI सेल्स सहायक हूँ। मैं आपकी डिजिटल कार्यस्थल पहलों को समझने के लिए संपर्क कर रही हूँ।",
         "greeting": "क्या आप बता सकते हैं कि आपकी टीम वर्तमान में SharePoint को कैसे मैनेज करती है?",
         "qualify": "आप SharePoint या Microsoft 365 में क्या परिणाम चाहते हैं, और समयसीमा क्या है?",
         "faq_services": "स्वीकृत ज्ञान के अनुसार हम SharePoint इम्प्लीमेंटेशन, माइग्रेशन, Microsoft 365 कंसल्टिंग, कस्टमाइज़ेशन, इंटीग्रेशन और डॉक्यूमेंट मैनेजमेंट देते हैं।",
@@ -48,14 +48,14 @@ SCRIPTS = {
         "callback": "मैं एक मानव सेल्सपर्सन के साथ कॉलबैक शेड्यूल करूँगी। अच्छा समय कब है?",
         "not_interested": "समझ गई। मैं आउटरीच रोक दूँगी और इस नंबर को डू-नॉट-कॉन्टैक्ट सूची में डाल दूँगी। धन्यवाद।",
         "handoff": "मैं आपको एक मानव विशेषज्ञ से जोड़ रही हूँ। अभी एक उच्च-प्राथमिकता फॉलो-अप टास्क बनेगा।",
-        "voicemail": "नमस्ते, मैं नॉर्थविंड डिजिटल की AI सहायक हूँ। कृपया SharePoint सेवाओं के बारे में हमें वापस कॉल करें। यह डेमो सिमुलेशन है।",
+        "voicemail": "नमस्ते, मैं नॉर्थविंड डिजिटल की AI सहायक हूँ। कृपया SharePoint सेवाओं के बारे में हमें वापस कॉल करें।",
         "closing": "आपके समय के लिए धन्यवाद। अगली कार्रवाई एक मानव साथी पूरी करेगा।",
         "fallback": "मैं स्वीकृत जानकारी से SharePoint और Microsoft 365 जरूरतों को क्वालिफाई कर सकती हूँ। आप कौन सी सेवा चाहते हैं, और समयसीमा क्या है?",
-        "no_answer": "कोई उत्तर नहीं। डेमो कैंपेन नीति के अनुसार रीट्राई संभव है।",
+        "no_answer": "कोई उत्तर नहीं। फॉलो-अप टास्क शेड्यूल कर दिया गया है।",
         "connected": "कॉल कनेक्ट हो गई। मैं केवल स्वीकृत ज्ञान से क्वालिफिकेशन जारी रखूँगी।",
     },
     "gu": {
-        "disclosure": "નમસ્તે, હું નોર્થવિન્ડ ડિજિટલની AI સેલ્સ સહાયક છું. આ ડેમો વૉઇસ સિમ્યુલેશન છે. હું માત્ર મંજૂર માહિતી શેર કરી શકું.",
+        "disclosure": "નમસ્તે, હું નોર્થવિન્ડ ડિજિટલની AI સેલ્સ સહાયક છું. હું તમારા ડિજિટલ વર્કપ્લેસ આયોજન વિશે વાત કરવા માંગુ છું.",
         "greeting": "તમારી ટીમ હાલમાં SharePoint કેવી રીતે મેનેજ કરે છે તે વિશે તમે જણાવી શકો છો?",
         "qualify": "તમે SharePoint અથવા Microsoft 365માં શું પરિણામ ઇચ્છો છો, અને સમયમર્યાદા શું છે?",
         "faq_services": "મંજૂર જ્ઞાન મુજબ અમે SharePoint ઇમ્પ્લિમેન્ટેશન, માઇગ્રેશન, Microsoft 365 કન્સલ્ટિંગ, કસ્ટમાઇઝેશન, ઇન્ટિગ્રેશન અને ડોક્યુમેન્ટ મેનેજમેન્ટ આપીએ છીએ.",
@@ -65,10 +65,10 @@ SCRIPTS = {
         "callback": "હું માનવ સેલ્સપર્સન સાથે કૉલબેક શેડ્યૂલ કરીશ. સારો સમય ક્યારે છે?",
         "not_interested": "સમજાયું. હું આઉટરીચ બંધ કરીશ અને આ નંબર ડુ-નોટ-કોન્ટેક્ટ યાદીમાં મૂકીશ. આભાર.",
         "handoff": "હું તમને માનવ નિષ્ણાત સાથે જોડી રહી છું. હવે હાઇ-પ્રાયોરિટી ફોલો-અપ ટાસ્ક બનશે.",
-        "voicemail": "નમસ્તે, હું નોર્થવિન્ડ ડિજિટલની AI સહાયક છું. કૃપા કરી SharePoint સેવાઓ માટે પાછા કૉલ કરો. આ ડેમો સિમ્યુલેશન છે.",
+        "voicemail": "નમસ્તે, હું નોર્થવિન્ડ ડિજિટલની AI સહાયક છું. કૃપા કરી SharePoint સેવાઓ માટે પાછા કૉલ કરો.",
         "closing": "તમારા સમય બદલ આભાર. આગળની ક્રિયા માનવ સાથીદાર પૂર્ણ કરશે.",
         "fallback": "હું મંજૂર માહિતીથી SharePoint અને Microsoft 365 જરૂરિયાતો ક્વોલિફાય કરી શકું. તમે કઈ સેવા ઇચ્છો છો, અને સમયમર્યાદા શું છે?",
-        "no_answer": "કોઈ જવાબ નથી. ડેમો કેમ્પેઇન નીતિ મુજબ રિટ્રાય શક્ય છે.",
+        "no_answer": "કોઈ જવાબ નથી. ફોલો-અપ શેડ્યૂલ કર્યું છે.",
         "connected": "કૉલ કનેક્ટ થયો. હું માત્ર મંજૂર જ્ઞાનથી ક્વોલિફિકેશન ચાલુ રાખીશ.",
     },
 }

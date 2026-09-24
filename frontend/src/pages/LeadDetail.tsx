@@ -36,40 +36,77 @@ export default function LeadDetail() {
   }
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">{lead.company}</h1>
-      <span className="badge bg-amber-50 text-amber-800">DEMO DATA</span>
-      <p className="text-gray-600">
-        {lead.name || "Not detected"} · {lead.job_title || "Not detected"} · score {lead.opportunity_score ?? "Not detected"} · intent {lead.intent_level}
-      </p>
-      <div className="grid md:grid-cols-2 gap-3">
-        <div className="card p-4 text-sm space-y-1">
-          <div className="font-semibold">Lead</div>
-          <div>Source: {lead.source} · URL: {lead.website || "Not detected"}</div>
-          <div>Industry: {lead.industry || "Not detected"}</div>
-          <div>Location: {lead.location || "Not detected"}</div>
-        </div>
-        <div className="card p-4 text-sm space-y-1">
-          <div className="font-semibold">Company</div>
-          <div>{company?.name || "Not detected"} · size {company?.company_size || "Not detected"}</div>
-          <div>Tech: {(company?.technologies || []).join(", ") || "Not detected"}</div>
+    <div className="space-y-5 max-w-4xl">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold text-slate-900">{lead.company}</h1>
+            <span className="badge bg-indigo-50 text-indigo-700 border border-indigo-200">
+              {lead.pipeline_stage || "Discovered"}
+            </span>
+          </div>
+          <p className="text-slate-500 text-sm mt-1">
+            {lead.name || "Primary Contact"} · {lead.job_title || "Decision Maker"} · Score: <strong className="text-indigo-600">{lead.opportunity_score ?? "—"}</strong> · Intent: {lead.intent_level}
+          </p>
         </div>
       </div>
-      <div className="card p-4 space-y-2">
-        <h2 className="font-semibold">Edit</h2>
-        <textarea className="input h-24" value={notes} onChange={(e) => setNotes(e.target.value)} />
-        <select className="input" value={stage} onChange={(e) => setStage(e.target.value)}>
-          {stages.map((s) => (
-            <option key={s}>{s}</option>
-          ))}
-        </select>
-        <input className="input" value={qual} onChange={(e) => setQual(e.target.value)} placeholder="Qualification status" />
-        <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
-        <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone" />
-        <button className="btn btn-primary" onClick={save}>
-          Save
-        </button>
-        {msg && <p className="text-sm text-green-700">{msg}</p>}
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <div className="card p-5 text-sm space-y-2 bg-white shadow-xs">
+          <div className="font-bold text-slate-900 border-b border-slate-100 pb-2">Prospect Intelligence</div>
+          <div className="text-slate-600"><span className="text-slate-400">Source:</span> {lead.source}</div>
+          <div className="text-slate-600"><span className="text-slate-400">Website:</span> {lead.website || "—"}</div>
+          <div className="text-slate-600"><span className="text-slate-400">Industry:</span> {lead.industry || "Enterprise"}</div>
+          <div className="text-slate-600"><span className="text-slate-400">Location:</span> {lead.location || "Global"}</div>
+        </div>
+
+        <div className="card p-5 text-sm space-y-2 bg-white shadow-xs">
+          <div className="font-bold text-slate-900 border-b border-slate-100 pb-2">Company Background</div>
+          <div className="text-slate-600"><span className="text-slate-400">Organization:</span> {company?.name || lead.company}</div>
+          <div className="text-slate-600"><span className="text-slate-400">Scale:</span> {company?.company_size || "Mid-Market / Enterprise"}</div>
+          <div className="text-slate-600"><span className="text-slate-400">Stack:</span> {(company?.technologies || []).join(", ") || "Cloud Architecture"}</div>
+        </div>
+      </div>
+
+      <div className="card p-5 space-y-4 bg-white shadow-xs">
+        <h2 className="font-bold text-slate-900 text-base">Edit Prospect Profile</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Pipeline Stage</label>
+            <select className="input h-10 text-xs font-medium" value={stage} onChange={(e) => setStage(e.target.value)}>
+              {stages.map((s) => (
+                <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Qualification Status</label>
+            <input className="input h-10 text-xs" value={qual} onChange={(e) => setQual(e.target.value)} placeholder="e.g. Scheduled meeting" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Contact Email</label>
+            <input className="input h-10 text-xs" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Contact Phone</label>
+            <input className="input h-10 text-xs" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+1 555-0100" />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-slate-700 mb-1">Internal Notes & Context</label>
+          <textarea className="input h-20 text-xs" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Add sales notes..." />
+        </div>
+
+        <div className="flex items-center gap-3 pt-1">
+          <button className="btn btn-primary text-xs px-5" onClick={save}>
+            Save Changes
+          </button>
+          {msg && <p className="text-xs font-semibold text-emerald-600">{msg}</p>}
+        </div>
       </div>
       <div className="grid md:grid-cols-2 gap-3">
         {Object.entries(enrichment).map(([k, v]: any) => (

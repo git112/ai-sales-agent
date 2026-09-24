@@ -11,7 +11,7 @@
   },
   {
     "id": "admin_001",
-    "name": "Demo Admin",
+    "name": "System Administrator",
     "email": "admin@example.com",
     "password_hash": "$2b$12$ZNeHh/7ZFA5ektB4Or648Oyuq7S.p8mH5zMqFjbEfFd7lmM1xE8MC",
     "role": "admin",

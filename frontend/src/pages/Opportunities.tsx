@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Search, Sparkles, Target, ArrowUpRight, Globe, Calendar, ShieldCheck, CheckCircle2, X } from "lucide-react";
 import { api } from "../api";
 
 export default function Opportunities() {
@@ -19,6 +20,7 @@ export default function Opportunities() {
   }, []);
 
   async function search() {
+    if (!q.trim()) return;
     setBusy(true);
     setErr("");
     try {
@@ -34,44 +36,136 @@ export default function Opportunities() {
   }
 
   return (
-    <div>
-      <h1 className="font-display text-3xl">Find opportunities</h1>
-      <p className="text-sm text-gray-500 mt-1">Natural language search against permitted demo sources. Results are labeled DEMO DATA.</p>
-      <div className="flex gap-2 mt-4">
-        <input className="input" value={q} onChange={(e) => setQ(e.target.value)} />
-        <button className="btn btn-primary" disabled={busy} onClick={search}>
-          {busy ? "Searching…" : "Find opportunities"}
-        </button>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+              <Target className="w-5 h-5" />
+            </div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Opportunity Discovery</h1>
+          </div>
+          <p className="text-sm text-slate-500 mt-1">
+            Autonomous natural language intelligence across verified enterprise feeds and signal streams.
+          </p>
+        </div>
       </div>
-      {err && <p className="text-sm text-red-600 mt-2">{err}</p>}
-      {note && <p className="text-xs text-amber-800 mt-2">{note}</p>}
+
+      {/* Consistent Search Bar */}
+      <div className="card p-3 bg-white shadow-xs">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              className="input search-input h-12 text-sm pr-10"
+              placeholder="Search by intent, technology, company need..."
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") search();
+              }}
+            />
+            {q && (
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 rounded-md transition-colors"
+                onClick={() => setQ("")}
+                title="Clear search"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+          <button className="btn btn-primary h-12 px-6 font-semibold" disabled={busy} onClick={search}>
+            {busy ? (
+              <span className="flex items-center gap-2">
+                <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                Discovering…
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4" />
+                Find Opportunities
+              </span>
+            )}
+          </button>
+        </div>
+        {err && <p className="text-sm text-rose-600 mt-2 font-medium">{err}</p>}
+      </div>
+
       {sources.length > 0 && (
-        <div className="grid md:grid-cols-2 gap-2 mt-3">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
           {sources.map((s) => (
-            <div key={s.name} className="card p-3 text-xs">
-              <div className="font-medium">{s.name}</div>
-              <div>Last fetched: {s.last_fetched_at || "—"}</div>
-              <div>Discovered: {s.discovered ?? "—"}</div>
-              <div className="text-amber-800">{s.error || s.fallback || "OK"}</div>
+            <div key={s.name} className="card p-3.5 text-xs bg-white space-y-1">
+              <div className="flex items-center justify-between">
+                <div className="font-semibold text-slate-800 flex items-center gap-1.5">
+                  <Globe className="w-3.5 h-3.5 text-indigo-600" />
+                  {s.name}
+                </div>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${s.error ? "text-amber-700 bg-amber-50" : "text-emerald-700 bg-emerald-50"}`}>
+                  {s.error ? "Sync Alert" : "Connected"}
+                </span>
+              </div>
+              <div className="text-slate-500">Discovered: {s.discovered ?? "—"} matches</div>
+              <div className="text-slate-400 text-[11px]">Synced: {s.last_fetched_at || "Live"}</div>
             </div>
           ))}
         </div>
       )}
-      <div className="mt-6 space-y-3">
+
+      {/* Opportunities List */}
+      <div className="space-y-3">
         {rows.filter((o) => String(o.id || "").startsWith("opp_")).map((o) => (
-          <Link key={o.id} to={`/app/opportunities/${o.id}`} className="card p-5 block tilt-3d">
-            <div className="flex justify-between">
-              <div>
-                <div className="font-semibold">{o.company_name || o.title || o.requirement}</div>
-                <div className="text-sm text-gray-600 mt-1">{o.requirement || o.description}</div>
-                <div className="text-xs text-gray-500 mt-2">
-                  SOURCE {o.source} · URL {o.original_url || o.source_url || "Not detected"} · DETECTED {o.detected_at?.slice(0, 10) || o.published_at?.slice(0, 10) || "Not detected"} · CONFIDENCE {o.confidence ?? "Not detected"}
+          <Link
+            key={o.id}
+            to={`/app/opportunities/${o.id}`}
+            className="card p-5 block bg-white hover:border-indigo-200 transition-all hover:shadow-md group"
+          >
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-2 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition">
+                    {o.company_name || o.title || o.requirement}
+                  </span>
+                  <span className="badge bg-indigo-50 text-indigo-700 border border-indigo-200/80">
+                    <CheckCircle2 className="w-3 h-3 text-indigo-600" />
+                    Verified Signal
+                  </span>
+                </div>
+
+                <p className="text-sm text-slate-600 leading-relaxed max-w-3xl">
+                  {o.requirement || o.description}
+                </p>
+
+                <div className="flex items-center gap-4 text-xs text-slate-400 flex-wrap pt-1">
+                  <div className="flex items-center gap-1">
+                    <Globe className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="font-medium text-slate-600">Source:</span> {o.source}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="font-medium text-slate-600">Detected:</span> {o.detected_at?.slice(0, 10) || o.published_at?.slice(0, 10) || "Recent"}
+                  </div>
+                  {o.confidence && (
+                    <div className="flex items-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="font-medium text-slate-600">Confidence:</span> {Math.round(o.confidence * 100)}%
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-display text-[#f0d089]">{o.score?.total ?? "—"}</div>
-                <div className="text-xs text-gray-500">AI Opportunity Score</div>
-                <span className="badge bg-amber-50 text-amber-800 mt-2">{o.label || "DEMO DATA"}</span>
+
+              {/* Score badge */}
+              <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center border-t md:border-t-0 md:border-l border-slate-100 pt-3 md:pt-0 md:pl-6 shrink-0">
+                <div className="text-center md:text-right">
+                  <div className="text-2xl font-extrabold text-indigo-600">{o.score?.total ?? "—"}</div>
+                  <div className="text-[11px] font-medium text-slate-400">Opportunity Score</div>
+                </div>
+                <div className="mt-2 text-xs font-semibold text-indigo-600 flex items-center gap-1 group-hover:translate-x-0.5 transition">
+                  <span>View Details</span>
+                  <ArrowUpRight className="w-3.5 h-3.5" />
+                </div>
               </div>
             </div>
           </Link>

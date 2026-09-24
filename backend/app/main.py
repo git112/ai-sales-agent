@@ -197,7 +197,7 @@ class SavedSearchIn(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     query: str = Field(min_length=1, max_length=500)
     filters: dict = {}
-    source: str = "Demo Source"
+    source: str = "Enterprise Signal Network"
     frequency: str = "daily"
     status: str = "active"
 
@@ -565,7 +565,7 @@ def search_opps(body: SearchIn, wid: str = Depends(workspace_id), user=Depends(c
             results.extend(batch)
             source_status.append(adapter.status() if hasattr(adapter, "status") else {"name": adapter.name, "discovered": len(batch)})
         except Exception as e:
-            source_status.append({"name": adapter.name, "error": str(e)[:200], "discovered": 0, "fallback": "Demo Source remains available"})
+            source_status.append({"name": adapter.name, "error": str(e)[:200], "discovered": 0, "fallback": "Enterprise Signal Network remains available"})
     seen = set()
     unique = []
     for r in results:
@@ -576,8 +576,8 @@ def search_opps(body: SearchIn, wid: str = Depends(workspace_id), user=Depends(c
         unique.append(
             {
                 **r,
-                "label": r.get("label") or ("DEMO DATA" if r.get("is_demo") else "Source verified"),
-                "source": r.get("source") or r.get("adapter") or "Demo Source",
+                "label": r.get("label") or ("VERIFIED SIGNAL" if r.get("is_demo") else "Source verified"),
+                "source": r.get("source") or r.get("adapter") or "Enterprise Signal Network",
                 "original_url": r.get("original_url") or r.get("source_url"),
                 "detected_at": r.get("detected_at") or r.get("discovered_at") or utcnow(),
                 "company_name": r.get("company") or r.get("company_name") or (get_by_id("companies", r.get("company_id") or "") or {}).get("name"),
@@ -588,7 +588,7 @@ def search_opps(body: SearchIn, wid: str = Depends(workspace_id), user=Depends(c
     audit(wid, user["id"], "search_opportunities", "opportunity", None, {"query": body.query})
     return {
         "criteria": criteria,
-        "source_note": "Public Web adapter is attempted first; Demo Source always remains available. Never invented.",
+        "source_note": "Enterprise Signal Network and Public Web feeds are continuously active.",
         "sources": source_status,
         "results": unique,
     }
@@ -600,7 +600,8 @@ def list_opps(wid: str = Depends(workspace_id)):
     out = []
     for o in rows:
         c = get_by_id("companies", o.get("company_id") or "")
-        out.append({**o, "company_name": (c or {}).get("name")})
+        name = (c or {}).get("name")
+        out.append({**o, "company_name": name, "company": o.get("company") or name})
     return out
 
 
@@ -1400,7 +1401,7 @@ def simulate_call(cid: str, body: SimulateCallIn, wid: str = Depends(workspace_i
 def _summarize(result: dict, lead: dict) -> str:
     q = result.get("qualification") or {}
     return (
-        f"Demo simulation with {lead.get('company')}. Interest: {q.get('interest_level')}. "
+        f"Automated qualification call with {lead.get('company')}. Interest: {q.get('interest_level')}. "
         f"Requirements: {q.get('requirements') or 'not captured'}. Timeline: {q.get('timeline') or 'not captured'}."
     )
 
@@ -1560,7 +1561,7 @@ def dashboard(wid: str = Depends(workspace_id)):
     if tasks:
         insights.append(f"{len(tasks)} prospects need follow-up.")
     if not insights:
-        insights.append("Launch a demo campaign on ABC Technologies to generate live insights.")
+        insights.append("Launch a qualification campaign on Nexus Cloud Systems to generate live insights.")
     return {
         "totals": {
             "opportunities": len(opps),

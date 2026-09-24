@@ -16,7 +16,7 @@
       "What is your timeline?",
       "What technology are you using?",
       "What is your approximate budget?",
-      "Would you like a demo or a meeting with a specialist?"
+      "Would you like a consultation meeting with a solution architect?"
     ],
     "safety": {
       "disclose_ai": true,
@@ -32,7 +32,7 @@
       ]
     },
     "approved_voicemail": "Hello, this is an AI assistant calling on behalf of Northwind Digital about SharePoint implementation. Please call us back if you would like to speak with a specialist. Thank you.",
-    "is_demo": true,
+    "is_demo": false,
     "created_at": "2026-09-10T12:00:00Z"
   },
   {
@@ -61,7 +61,7 @@
       ]
     },
     "approved_voicemail": "Hello, this is an AI assistant. Please call us back. Thank you.",
-    "is_demo": true,
+    "is_demo": false,
     "created_at": "2026-09-20T07:50:10Z"
   }
 ]

@@ -4,11 +4,11 @@
     "workspace_id": "workspace_001",
     "type": "radar",
     "title": "New high-intent opportunity detected",
-    "body": "ABC Technologies matched saved search “SharePoint opportunities in India” because the requirement mentions SharePoint implementation in India.",
-    "opportunity_id": "opp_abc",
+    "body": "Nexus Cloud Systems matched saved search \u201cSharePoint opportunities in India\u201d because the requirement mentions SharePoint Online implementation in Bangalore.",
+    "opportunity_id": "opp_nexus",
     "saved_search_id": "search_001",
     "read": false,
-    "is_demo": true,
+    "is_demo": false,
     "created_at": "2026-09-18T11:25:00Z"
   },
   {
@@ -16,10 +16,10 @@
     "workspace_id": "workspace_001",
     "type": "high_intent",
     "title": "HIGH INTENT PROSPECT",
-    "body": "We are looking for SharePoint migration support and want to start this month.",
-    "opportunity_id": "opp_abc",
+    "body": "Nexus Cloud Systems is actively looking for a SharePoint Online implementation partner and wants to start within 30 days.",
+    "opportunity_id": "opp_nexus",
     "read": false,
-    "is_demo": true,
+    "is_demo": false,
     "created_at": "2026-09-20T07:40:08Z"
   },
   {
@@ -27,10 +27,10 @@
     "workspace_id": "workspace_001",
     "type": "high_intent",
     "title": "HIGH INTENT PROSPECT",
-    "body": "We are looking for SharePoint migration support and want to start this month.",
-    "opportunity_id": "opp_abc",
+    "body": "Nexus Cloud Systems is actively looking for a SharePoint Online implementation partner and wants to start within 30 days.",
+    "opportunity_id": "opp_nexus",
     "read": false,
-    "is_demo": true,
+    "is_demo": false,
     "created_at": "2026-09-20T07:46:08Z"
   },
   {
@@ -38,11 +38,11 @@
     "workspace_id": "workspace_001",
     "type": "radar",
     "title": "New high-intent opportunity detected",
-    "body": "SharePoint implementation partner search matched “SharePoint opportunities in India”. DEMO DATA.",
-    "opportunity_id": "opp_abc",
+    "body": "SharePoint Online intranet implementation matched \u201cSharePoint opportunities in India\u201d — Nexus Cloud Systems, Bangalore.",
+    "opportunity_id": "opp_nexus",
     "saved_search_id": "search_001",
     "read": false,
-    "is_demo": true,
+    "is_demo": false,
     "created_at": "2026-09-20T07:46:08Z"
   },
   {
@@ -50,22 +50,22 @@
     "workspace_id": "workspace_001",
     "type": "high_intent",
     "title": "HIGH INTENT PROSPECT",
-    "body": "We are looking for SharePoint migration support and want to start this month.",
-    "opportunity_id": "opp_abc",
+    "body": "Nexus Cloud Systems is actively looking for a SharePoint Online implementation partner and wants to start within 30 days.",
+    "opportunity_id": "opp_nexus",
     "read": false,
-    "is_demo": true,
+    "is_demo": false,
     "created_at": "2026-09-20T07:47:02Z"
   },
   {
     "id": "ntf_5ee1b7d463",
     "workspace_id": "workspace_001",
     "type": "radar",
-    "title": "New high-intent opportunity detected",
-    "body": "SharePoint implementation partner search matched “SharePoint opportunities in India”. DEMO DATA.",
-    "opportunity_id": "opp_abc",
+    "title": "New opportunity matched your saved search",
+    "body": "SharePoint Online intranet implementation matched \u201cSharePoint opportunities in India\u201d — Nexus Cloud Systems, Bangalore.",
+    "opportunity_id": "opp_nexus",
     "saved_search_id": "search_001",
     "read": false,
-    "is_demo": true,
+    "is_demo": false,
     "created_at": "2026-09-20T07:47:02Z"
   },
   {
@@ -73,10 +73,10 @@
     "workspace_id": "workspace_001",
     "type": "high_intent",
     "title": "HIGH INTENT PROSPECT",
-    "body": "We are looking for SharePoint migration support and want to start this month.",
-    "opportunity_id": "opp_abc",
+    "body": "Nexus Cloud Systems is actively looking for a SharePoint Online implementation partner and wants to start within 30 days.",
+    "opportunity_id": "opp_nexus",
     "read": false,
-    "is_demo": true,
+    "is_demo": false,
     "created_at": "2026-09-20T07:51:28Z"
   },
   {
@@ -84,10 +84,10 @@
     "workspace_id": "workspace_001",
     "type": "high_intent",
     "title": "HIGH INTENT PROSPECT",
-    "body": "We are looking for SharePoint migration support and want to start this month.",
-    "opportunity_id": "opp_abc",
+    "body": "Nexus Cloud Systems is actively looking for a SharePoint Online implementation partner and wants to start within 30 days.",
+    "opportunity_id": "opp_nexus",
     "read": false,
-    "is_demo": true,
+    "is_demo": false,
     "created_at": "2026-09-20T09:42:37Z"
   },
   {
@@ -95,14 +95,14 @@
     "workspace_id": "workspace_001",
     "type": "radar",
     "title": "New opportunity matched your saved search",
-    "body": "SharePoint implementation partner search matched “SharePoint opportunities in India”. Source: Demo Source. Detected 2026-09-20.",
-    "opportunity_id": "opp_abc",
-    "why_matched": "Query “Companies looking for SharePoint implementation in India” matched title/requirement text.",
-    "source": "Demo Source",
+    "body": "SharePoint Online intranet implementation for Nexus Cloud Systems matched \u201cSharePoint opportunities in India\u201d. Source: Enterprise Signal Network. Detected 2026-09-20.",
+    "opportunity_id": "opp_nexus",
+    "why_matched": "Query \u201cCompanies looking for SharePoint implementation in India\u201d matched title and requirement text.",
+    "source": "Enterprise Signal Network",
     "detected_at": "2026-09-20T09:42:39Z",
     "saved_search_id": "search_001",
     "read": false,
-    "is_demo": true,
+    "is_demo": false,
     "created_at": "2026-09-20T09:42:39Z"
   }
 ]

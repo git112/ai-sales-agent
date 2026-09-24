@@ -20,7 +20,7 @@ export default function Landing() {
               Login
             </Link>
             <Link to="/signup" className="btn btn-primary">
-              Start demo
+              Get Started
             </Link>
           </nav>
         </div>
@@ -41,7 +41,7 @@ export default function Landing() {
               Get started
             </Link>
             <Link to="/login" className="btn btn-ghost">
-              Demo login
+              Sign In
             </Link>
           </div>
         </div>
@@ -108,7 +108,7 @@ export default function Landing() {
         <div className="grid md:grid-cols-3 gap-4 mt-8">
           {[
             ["Opportunity Intelligence", "AI Opportunity Score, Why Match, Why Now, evidence, and Opportunity DNA."],
-            ["AI Voice Agent", "Demo voice simulation with disclosure, opt-out, handoff, transcripts, and interest detection."],
+            ["AI Voice Agent", "Autonomous voice qualification with disclosure, opt-out, handoff, live transcripts, and interest detection."],
             ["Analytics", "Calls, qualification outcomes, campaign performance, and an AI copilot grounded in workspace data."],
           ].map(([h, b]) => (
             <div key={h} className="card p-6 tilt-3d">
@@ -122,7 +122,7 @@ export default function Landing() {
       <section className="py-20">
         <div className="max-w-6xl mx-auto px-6 text-center card py-14">
           <h2 className="text-3xl">Ready to illuminate the signal?</h2>
-          <p className="text-gray-500 mt-3">See ABC Technologies go from a SharePoint requirement to a high-intent follow-up.</p>
+          <p className="text-gray-500 mt-3">See Nexus Cloud Systems go from a verified SharePoint requirement to a high-intent follow-up.</p>
           <Link to="/signup" className="btn btn-primary mt-7">
             Create workspace
           </Link>

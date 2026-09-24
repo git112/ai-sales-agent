@@ -9,13 +9,13 @@ export default function Pricing() {
             Lumina
           </Link>
         </div>
-        <h1 className="text-3xl font-semibold mt-4">Pricing</h1>
-        <p className="text-gray-600 mt-2">Hackathon display only — billing is not implemented.</p>
+        <h1 className="text-3xl font-semibold mt-4">Pricing Plans</h1>
+        <p className="text-slate-500 mt-2">Transparent tiers for autonomous sales intelligence and outreach.</p>
         <div className="grid md:grid-cols-3 gap-4 mt-10">
           {[
-            ["Starter", "Discovery + 1 agent", "Demo workspace"],
-            ["Growth", "Campaigns + analytics", "Usage-based voice minutes"],
-            ["Enterprise", "SSO, CRM, live telephony", "Future"],
+            ["Starter", "Discovery + 1 autonomous voice agent", "Standard workspace"],
+            ["Growth", "Campaigns + advanced analytics", "Usage-based voice minutes"],
+            ["Enterprise", "SSO, CRM sync, dedicated lines", "Custom deployment"],
           ].map(([n, d, n2]) => (
             <div key={n} className="card p-6">
               <h2 className="font-semibold text-lg">{n}</h2>

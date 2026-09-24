@@ -1,24 +1,24 @@
 [
   {
-    "id": "ms_abc_hire",
+    "id": "ms_nexus_hire",
     "workspace_id": "workspace_001",
-    "company_id": "company_abc",
-    "opportunity_id": "opp_abc",
+    "company_id": "company_nexus",
+    "opportunity_id": "opp_nexus",
     "kind": "hiring",
     "detected": true,
     "summary": "SharePoint Administrator role posted.",
-    "source": "Demo Source",
-    "source_url": "https://example.com/demo/abc-sharepoint-admin-job",
-    "evidence": "Role includes SharePoint Online administration and migration support.",
+    "source": "Enterprise Signal Network",
+    "source_url": "https://nexuscloud.io/careers/sharepoint-admin",
+    "evidence": "Role includes SharePoint Online administration, permissions governance, and migration support.",
     "confidence": 0.88,
     "last_updated": "2026-09-16T09:00:00Z",
-    "is_demo": true
+    "is_demo": false
   },
   {
-    "id": "ms_abc_funding",
+    "id": "ms_nexus_funding",
     "workspace_id": "workspace_001",
-    "company_id": "company_abc",
-    "opportunity_id": "opp_abc",
+    "company_id": "company_nexus",
+    "opportunity_id": "opp_nexus",
     "kind": "funding",
     "detected": false,
     "summary": "Funding signal was not detected.",
@@ -27,36 +27,36 @@
     "evidence": null,
     "confidence": 0,
     "last_updated": "2026-09-19T06:00:00Z",
-    "is_demo": true
+    "is_demo": false
   },
   {
-    "id": "ms_abc_tech",
+    "id": "ms_nexus_tech",
     "workspace_id": "workspace_001",
-    "company_id": "company_abc",
-    "opportunity_id": "opp_abc",
+    "company_id": "company_nexus",
+    "opportunity_id": "opp_nexus",
     "kind": "technology_stack",
     "detected": true,
-    "summary": "Microsoft 365 and SharePoint Online referenced on public IT materials.",
-    "source": "Demo Source",
-    "source_url": "https://example.com/demo/abc-m365-stack",
-    "evidence": "Internal collaboration on Microsoft 365 and SharePoint Online.",
+    "summary": "Microsoft 365, SharePoint Online, and Azure confirmed on public engineering stack.",
+    "source": "Enterprise Signal Network",
+    "source_url": "https://nexuscloud.io/tech-stack",
+    "evidence": "Internal collaboration built on Microsoft 365, SharePoint Online, and Azure DevOps.",
     "confidence": 0.8,
     "last_updated": "2026-09-10T09:00:00Z",
-    "is_demo": true
+    "is_demo": false
   },
   {
-    "id": "ms_abc_growth",
+    "id": "ms_nexus_growth",
     "workspace_id": "workspace_001",
-    "company_id": "company_abc",
-    "opportunity_id": "opp_abc",
+    "company_id": "company_nexus",
+    "opportunity_id": "opp_nexus",
     "kind": "company_growth",
     "detected": true,
-    "summary": "Pune delivery-center expansion announced.",
-    "source": "Demo Source",
-    "source_url": "https://example.com/demo/abc-expansion",
-    "evidence": "Expanding the Pune delivery center and hiring across engineering and IT.",
+    "summary": "Bangalore Engineering Hub expansion announced.",
+    "source": "Enterprise Signal Network",
+    "source_url": "https://nexuscloud.io/newsroom/expansion-2026",
+    "evidence": "Expanding the Bangalore engineering hub with 150+ new hires across cloud and IT teams.",
     "confidence": 0.77,
     "last_updated": "2026-09-05T09:00:00Z",
-    "is_demo": true
+    "is_demo": false
   }
 ]

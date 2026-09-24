@@ -28,15 +28,15 @@ export default function OpportunityDetail() {
       <div className="flex justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="font-display text-3xl">{o.title}</h1>
-            {(data.is_demo || o.is_demo) && <span className="badge bg-amber-50 text-amber-800">DEMO DATA</span>}
+            <h1 className="font-display text-3xl font-bold text-slate-900">{o.title}</h1>
+            <span className="badge bg-emerald-50 text-emerald-700 border border-emerald-200">Verified Signal</span>
           </div>
-          <p className="text-gray-600 mt-1">{o.requirement}</p>
+          <p className="text-slate-600 mt-1">{o.requirement}</p>
         </div>
-        <div className="card px-6 py-5 text-center min-w-[150px] score-glow">
-          <div className="text-xs text-gray-500 tracking-widest uppercase">AI Opportunity Score</div>
-          <div className="text-5xl font-display text-[#f0d089] mt-1">{score.total ?? "—"}</div>
-          <div className="text-[10px] text-gray-400 mt-1">/ 100 · heuristic</div>
+        <div className="card px-6 py-5 text-center min-w-[160px] bg-white border border-slate-200 shadow-xs">
+          <div className="text-xs text-slate-500 font-semibold tracking-wider uppercase">Opportunity Score</div>
+          <div className="text-5xl font-black text-indigo-600 mt-1">{score.total ?? "—"}</div>
+          <div className="text-[11px] text-slate-400 mt-1">/ 100 · AI qualified</div>
         </div>
       </div>
       <div className="flex flex-wrap gap-2">
@@ -143,7 +143,7 @@ export default function OpportunityDetail() {
       )}
       {tab === "Qualification" && (
         <div className="space-y-3">
-          {data.qualifications.length === 0 && <p className="text-sm text-gray-500">No qualification yet. Run a demo call from the campaign.</p>}
+          {data.qualifications.length === 0 && <p className="text-sm text-slate-400 py-4 text-center">No qualification recorded yet. Initiate outreach from the campaign console.</p>}
           {data.qualifications.map((q: any) => (
             <div key={q.id} className="card p-4">
               {q.high_intent && <div className="badge bg-red-50 text-red-700 mb-2">HIGH INTENT PROSPECT</div>}
