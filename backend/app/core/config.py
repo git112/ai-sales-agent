@@ -24,5 +24,11 @@ class Settings(BaseSettings):
     ai_max_output_tokens: int = 800
     url_cache_ttl_seconds: int = 21600
 
+    bolna_api_key: str | None = None
+    bolna_base_url: str = "https://api.bolna.ai"
+    bolna_from_phone: str | None = None
+    bolna_default_agent_type: str = "other"
+    bolna_webhook_url: str | None = None
+
 
 settings = Settings()

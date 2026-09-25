@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Megaphone, Play, Pause, PhoneCall, FastForward, Clock, ArrowUpRight, Flame, CheckCircle2 } from "lucide-react";
+import { Megaphone, Play, Pause, PhoneCall, FastForward, Clock, ArrowUpRight, Flame, CheckCircle2, Radio } from "lucide-react";
 import { api } from "../api";
 
 const OUTCOMES = ["Connected", "No Answer", "Voicemail", "Callback Requested", "Not Interested", "Interested", "Escalated"];
@@ -13,10 +13,74 @@ export default function CampaignDetail() {
   const [busy, setBusy] = useState("");
   const [err, setErr] = useState("");
   const [callLang, setCallLang] = useState("auto");
+  const [mode, setMode] = useState<"demo" | "live">("demo");
+  const pollRef = useRef<any>(null);
 
   useEffect(() => {
     api.get(`/campaigns/${id}`).then((r) => setCamp(r.data));
+    const wid = localStorage.getItem("lumina_workspace");
+    if (wid) {
+      api.get(`/workspaces/${wid}/mode`).then((r) => setMode(r.data?.mode || "demo")).catch(() => {});
+    }
   }, [id]);
+
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, []);
+
+  const [leadOpts, setLeadOpts] = useState<any[]>([]);
+  const [leadId, setLeadId] = useState("");
+
+  const startLivePoll = (callId: string) => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = setInterval(async () => {
+      try {
+        const { data } = await api.post(`/calls/${callId}/reconcile`);
+        const exec = data?.execution || {};
+        const isTerminal = ["completed", "no-answer", "busy", "failed", "canceled", "stopped", "error", "balance-low"].includes((exec.status || "").toLowerCase());
+        if (data?.processed) {
+          setResult((prev: any) => ({
+            ...(prev || {}),
+            label: "Live Bolna Call",
+            call: { ...(prev?.call || {}), ...data.processed, status: exec.status, outcome: data.processed.outcome, duration_sec: exec.conversation_time || prev?.call?.duration_sec || 0 },
+          }));
+        }
+        if (isTerminal) {
+          clearInterval(pollRef.current);
+          pollRef.current = null;
+          api.get(`/calls/${callId}`).then((r) => {
+            setResult((prev: any) => ({
+              ...(prev || {}),
+              label: "Live Bolna Call",
+              call: r.data.call,
+              transcript: r.data.transcript,
+              qualification: r.data.qualification,
+            }));
+          });
+        }
+      } catch {
+        /* keep polling */
+      }
+    }, 4000);
+  };
+
+  useEffect(() => {
+    if (!camp?.lead_ids) return;
+    api.get("/leads").then((r) => {
+      const all = Array.isArray(r.data) ? r.data : [];
+      const ids: string[] = camp.lead_ids || [];
+      const inCamp = all.filter((l: any) => ids.includes(l.id));
+      setLeadOpts(inCamp.length > 0 ? inCamp : all);
+      const first = inCamp[0]?.id || all[0]?.id || "";
+      setLeadId((prev) => prev || first);
+    }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [camp?.lead_ids]);
 
   if (!camp) {
     return (
@@ -26,8 +90,7 @@ export default function CampaignDetail() {
     );
   }
 
-  const leadId = camp.lead_ids?.[0] || "lead_abc";
-  const timeline = camp.timeline || [];
+  const timeline = camp?.timeline || [];
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -92,6 +155,18 @@ export default function CampaignDetail() {
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
           <div className="w-full sm:w-56">
+            <label className="block text-xs font-semibold text-slate-700 mb-1">Target Lead</label>
+            <select className="input h-10 text-xs font-medium" value={leadId} onChange={(e) => setLeadId(e.target.value)}>
+              {leadOpts.length === 0 && <option value="">No leads available</option>}
+              {leadOpts.map((l: any) => (
+                <option key={l.id} value={l.id}>
+                  {l.name || l.company || l.id}{l.phone ? ` · ${l.phone}` : " · no phone"}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="w-full sm:w-56">
             <label className="block text-xs font-semibold text-slate-700 mb-1">Target Outcome Trigger</label>
             <select className="input h-10 text-xs font-medium" value={hint} onChange={(e) => setHint(e.target.value)}>
               {OUTCOMES.map((h) => (
@@ -116,7 +191,8 @@ export default function CampaignDetail() {
           <div className="flex items-end gap-2 pt-5">
             <button
               className="btn btn-primary h-10 px-4 text-xs font-semibold flex items-center gap-1.5"
-              disabled={busy === "sim"}
+              disabled={busy === "sim" || !leadId}
+              title={!leadId ? "Select a target lead first" : ""}
               onClick={async () => {
                 setBusy("sim");
                 setErr("");
@@ -127,6 +203,9 @@ export default function CampaignDetail() {
                     language: callLang,
                   });
                   setResult(data);
+                  if (mode === "live" && data?.call?.id) {
+                    startLivePoll(data.call.id);
+                  }
                 } catch (e: any) {
                   setErr(e.response?.data?.error?.message || "Simulation failed");
                 } finally {
@@ -134,13 +213,22 @@ export default function CampaignDetail() {
                 }
               }}
             >
-              <PhoneCall className="w-3.5 h-3.5" />
-              <span>{busy === "sim" ? "Executing…" : "Initiate Call"}</span>
+              {mode === "live" ? <Radio className="w-3.5 h-3.5" /> : <PhoneCall className="w-3.5 h-3.5" />}
+              <span>
+                {busy === "sim"
+                  ? mode === "live"
+                    ? "Dialing…"
+                    : "Executing…"
+                  : mode === "live"
+                    ? "Initiate Live Call"
+                    : "Initiate Call"}
+              </span>
             </button>
 
             <button
               className="btn btn-ghost h-10 px-4 text-xs font-semibold flex items-center gap-1.5"
-              disabled={busy === "step"}
+              disabled={busy === "step" || mode === "live" || !leadId}
+              title={mode === "live" ? "Next-step automation is disabled in live mode" : ""}
               onClick={async () => {
                 setBusy("step");
                 setErr("");
@@ -171,12 +259,38 @@ export default function CampaignDetail() {
             <span className="badge bg-indigo-50 text-indigo-700 border border-indigo-200">
               {result.label || "Call Logged"}
             </span>
-            {result.qualification?.high_intent && (
-              <span className="badge bg-amber-50 text-amber-700 border border-amber-200">
-                <Flame className="w-3 h-3 text-amber-600" />
-                HIGH INTENT PROSPECT
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              {result.call?.mode === "live" && result.call?.status && !["completed", "no-answer", "busy", "failed", "canceled", "stopped", "error", "balance-low"].includes((result.call.status || "").toLowerCase()) && (
+                <span className="badge bg-emerald-50 text-emerald-700 border border-emerald-200 inline-flex items-center gap-1">
+                  <Radio className="w-3 h-3" /> Live · {result.call.status}
+                </span>
+              )}
+              {result.call?.mode === "live" && result.call?.id && (
+                <button
+                  className="btn btn-ghost text-[11px] py-1 px-2"
+                  onClick={async () => {
+                    const { data } = await api.post(`/calls/${result.call.id}/reconcile`);
+                    const exec = data?.execution || {};
+                    const call = await api.get(`/calls/${result.call.id}`);
+                    setResult((prev: any) => ({
+                      ...(prev || {}),
+                      label: "Live Bolna Call",
+                      call: { ...call.data.call, status: exec.status, duration_sec: exec.conversation_time || call.data.call.duration_sec },
+                      transcript: call.data.transcript,
+                      qualification: call.data.qualification,
+                    }));
+                  }}
+                >
+                  Refresh
+                </button>
+              )}
+              {result.qualification?.high_intent && (
+                <span className="badge bg-amber-50 text-amber-700 border border-amber-200">
+                  <Flame className="w-3 h-3 text-amber-600" />
+                  HIGH INTENT PROSPECT
+                </span>
+              )}
+            </div>
           </div>
 
           <p className="text-sm text-slate-700 leading-relaxed font-medium">

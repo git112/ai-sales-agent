@@ -286,12 +286,12 @@ class DemoVoiceProvider:
         return agent_reply(agent, user_text, history, locale)
 
 
-class LiveVoiceProvider:
-    label = "Live voice"
+# `live_voice` lives in `app.live_voice` and is the Bolna-backed provider.
+# Importing it lazily here keeps `app.voice` importable without httpx.
+def get_live_voice():
+    from app.live_voice import live_voice as _live
 
-    def reply(self, agent, user_text, history, locale="en"):
-        raise RuntimeError("Live telephony/STT/TTS is not configured. Use DEMO MODE.")
+    return _live
 
 
 demo_voice = DemoVoiceProvider()
-live_voice = LiveVoiceProvider()

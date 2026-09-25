@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import json
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
@@ -47,6 +48,8 @@ from app.store import (
 )
 from app.url_analysis import analyze_website, validate_url
 from app.voice import agent_reply, opening_message, scripts
+from app import bolna as bolna_client
+from app.live_voice import live_voice
 from contextlib import asynccontextmanager
 
 
@@ -183,6 +186,9 @@ class AgentIn(BaseModel):
     knowledge_doc_ids: list[str] = []
     call_objective: str | None = None
     qualification_questions: list[str] = []
+    company_name: str | None = None
+    guardrails: list[str] = []
+    guardrail_hours: dict | None = None
 
 
 class PlaygroundIn(BaseModel):
@@ -342,9 +348,28 @@ def set_mode(wid: str, mode: str = Form(...), user=Depends(current_user)):
         raise HTTPException(404, "Not found")
     if user.get("role") != "admin" and ws.get("owner_user_id") != user["id"] and wid != user.get("workspace_id"):
         raise HTTPException(404, "Not found")
+    if mode == "live" and not bolna_client.is_configured():
+        raise HTTPException(400, "Cannot switch to live mode: BOLNA_API_KEY is not set on the server.")
     ws = update_record("workspaces", wid, {"mode": mode})
     audit(wid, user["id"], "set_mode", "workspace", wid, {"mode": mode})
     return ws
+
+
+class WorkspacePhoneIn(BaseModel):
+    from_phone_number: str | None = None
+
+
+@app.patch("/api/v1/workspaces/{wid}/phone")
+def set_workspace_phone(wid: str, body: WorkspacePhoneIn, user=Depends(current_user)):
+    ws = get_by_id("workspaces", wid)
+    if not ws:
+        raise HTTPException(404, "Not found")
+    if user.get("role") != "admin" and ws.get("owner_user_id") != user["id"] and wid != user.get("workspace_id"):
+        raise HTTPException(404, "Not found")
+    phone = (body.from_phone_number or "").strip() or None
+    updated = update_record("workspaces", wid, {"from_phone_number": phone})
+    audit(wid, user["id"], "set_phone", "workspace", wid, {"from_phone_number": phone})
+    return updated
 
 
 @app.get("/api/v1/business-profile")
@@ -1170,6 +1195,7 @@ def get_agent(aid: str, wid: str = Depends(workspace_id)):
 
 @app.post("/api/v1/voice-agents")
 def create_agent(body: AgentIn, wid: str = Depends(workspace_id), user=Depends(current_user)):
+    ws = get_by_id("workspaces", wid) or {}
     rec = create_record(
         "voice_agents",
         {
@@ -1187,6 +1213,13 @@ def create_agent(body: AgentIn, wid: str = Depends(workspace_id), user=Depends(c
         },
     )
     audit(wid, user["id"], "create_agent", "voice_agent", rec["id"])
+    if ws.get("mode") == "live" and bolna_client.is_configured():
+        try:
+            bid = live_voice.sync_agent(rec)
+            rec = update_record("voice_agents", rec["id"], {"bolna_agent_id": bid})
+        except bolna_client.BolnaError as e:
+            log.warning("Bolna create_agent failed for %s: %s", rec["id"], e)
+            rec = update_record("voice_agents", rec["id"], {"bolna_sync_error": str(e)})
     return rec
 
 
@@ -1195,7 +1228,17 @@ def patch_agent(aid: str, payload: dict, wid: str = Depends(workspace_id)):
     a = get_by_id("voice_agents", aid)
     if not a or a.get("workspace_id") != wid:
         raise HTTPException(404, "Not found")
-    return update_record("voice_agents", aid, client_patch(payload))
+    ws = get_by_id("workspaces", wid) or {}
+    updated = update_record("voice_agents", aid, client_patch(payload))
+    if ws.get("mode") == "live" and bolna_client.is_configured() and updated.get("bolna_agent_id"):
+        try:
+            live_voice.sync_agent(updated)
+            updated.pop("bolna_sync_error", None)
+            updated = update_record("voice_agents", aid, {"bolna_sync_error": None})
+        except bolna_client.BolnaError as e:
+            log.warning("Bolna patch_agent failed for %s: %s", aid, e)
+            updated = update_record("voice_agents", aid, {"bolna_sync_error": str(e)})
+    return updated
 
 
 @app.delete("/api/v1/voice-agents/{aid}")
@@ -1203,6 +1246,11 @@ def delete_agent(aid: str, wid: str = Depends(workspace_id)):
     a = get_by_id("voice_agents", aid)
     if not a or a.get("workspace_id") != wid:
         raise HTTPException(404, "Not found")
+    if bolna_client.is_configured() and a.get("bolna_agent_id"):
+        try:
+            live_voice.delete_agent(a)
+        except bolna_client.BolnaError as e:
+            log.warning("Bolna delete_agent failed for %s: %s", aid, e)
     delete_record("voice_agents", aid)
     return {"ok": True}
 
@@ -1241,6 +1289,20 @@ def get_campaign(cid: str, wid: str = Depends(workspace_id)):
     return c
 
 
+@app.patch("/api/v1/campaigns/{cid}")
+def patch_campaign(cid: str, payload: dict, wid: str = Depends(workspace_id), user=Depends(current_user)):
+    c = get_by_id("campaigns", cid)
+    if not c or c.get("workspace_id") != wid:
+        raise HTTPException(404, "Not found")
+    allowed = {"name", "objective", "lead_ids", "qualification_questions", "language", "schedule", "scheduled_at", "quiet_hours", "retry_policy", "agent_id"}
+    patch = {k: v for k, v in client_patch(payload).items() if k in allowed}
+    if "lead_ids" in patch and not isinstance(patch["lead_ids"], list):
+        raise HTTPException(400, "lead_ids must be a list")
+    updated = update_record("campaigns", cid, patch)
+    audit(wid, user["id"], "patch_campaign", "campaign", cid, {"fields": list(patch.keys())})
+    return updated
+
+
 @app.post("/api/v1/campaigns")
 def create_campaign(body: CampaignIn, wid: str = Depends(workspace_id), user=Depends(current_user)):
     rec = create_record(
@@ -1272,9 +1334,19 @@ def launch_campaign(cid: str, wid: str = Depends(workspace_id), user=Depends(cur
     ws = get_by_id("workspaces", wid)
     mode = (ws or {}).get("mode") or "demo"
     if mode == "live":
-        raise HTTPException(400, "Live calling is not configured. Switch to DEMO MODE.")
+        if not bolna_client.is_configured():
+            raise HTTPException(400, "BOLNA_API_KEY is not configured on the server.")
+        agent = get_by_id("voice_agents", c.get("agent_id"))
+        if not agent or agent.get("workspace_id") != wid:
+            raise HTTPException(400, "Live campaigns require a valid voice agent.")
+        if not agent.get("bolna_agent_id"):
+            try:
+                bid = live_voice.sync_agent(agent)
+                agent = update_record("voice_agents", agent["id"], {"bolna_agent_id": bid})
+            except bolna_client.BolnaError as e:
+                raise HTTPException(502, f"Bolna agent sync failed: {e}")
     status = "running" if c.get("schedule") == "immediate" else "scheduled"
-    updated = update_record("campaigns", cid, {"status": status, "launched_at": utcnow(), "mode": "demo"})
+    updated = update_record("campaigns", cid, {"status": status, "launched_at": utcnow(), "mode": mode})
     audit(wid, user["id"], "launch_campaign", "campaign", cid)
     return updated
 
@@ -1350,6 +1422,10 @@ def simulate_call(cid: str, body: SimulateCallIn, wid: str = Depends(workspace_i
     lead = get_by_id("leads", body.lead_id)
     if not lead or lead.get("workspace_id") != wid:
         raise HTTPException(404, "Lead not found")
+
+    ws = get_by_id("workspaces", wid) or {}
+    if (ws.get("mode") or "demo") == "live":
+        return _dispatch_live_call(campaign, lead, body, wid, user)
     if lead.get("phone") or lead.get("email"):
         blocked = any(
             (lead.get("phone") and o.get("phone") == lead.get("phone"))
@@ -1557,6 +1633,286 @@ def simulate_call(cid: str, body: SimulateCallIn, wid: str = Depends(workspace_i
         "calendly_booking": sms_result.get("booking") if sms_result else None,
         "calendly_link": sms_result.get("calendly_link") if sms_result else None,
     }
+
+
+# ---------------- Bolna live dispatch + webhook reconcile ----------------
+
+def _dispatch_live_call(campaign: dict, lead: dict, body: SimulateCallIn, wid: str, user: dict) -> dict:
+    if not bolna_client.is_configured():
+        raise HTTPException(400, "BOLNA_API_KEY is not configured on the server.")
+    if lead.get("phone") or lead.get("email"):
+        blocked = any(
+            (lead.get("phone") and o.get("phone") == lead.get("phone"))
+            or (lead.get("email") and o.get("email") == lead.get("email"))
+            for o in by_workspace("opt_outs", wid)
+        )
+        if blocked:
+            raise HTTPException(400, "Lead is on the do-not-contact list")
+    agent = get_by_id("voice_agents", campaign.get("agent_id"))
+    if not agent or agent.get("workspace_id") != wid:
+        raise HTTPException(404, "Voice agent not found")
+    if not agent.get("bolna_agent_id"):
+        try:
+            bid = live_voice.sync_agent(agent)
+            agent = update_record("voice_agents", agent["id"], {"bolna_agent_id": bid})
+        except bolna_client.BolnaError as e:
+            raise HTTPException(502, f"Bolna agent sync failed: {e}")
+    recipient = (lead.get("phone") or "").strip()
+    if not recipient:
+        raise HTTPException(400, "Lead has no phone number")
+    ws = get_by_id("workspaces", wid) or {}
+    from_phone = ws.get("from_phone_number") or settings.bolna_from_phone
+    try:
+        resp = live_voice.dispatch(
+            agent=agent,
+            recipient_phone=recipient,
+            lead=lead,
+            from_phone=from_phone,
+            language=body.language or campaign.get("language") or "auto",
+        )
+    except bolna_client.BolnaError as e:
+        raise HTTPException(502, f"Bolna dispatch failed: {e}")
+    execution_id = (resp or {}).get("execution_id") or (resp or {}).get("data", {}).get("execution_id")
+    if not execution_id:
+        raise HTTPException(502, f"Bolna dispatch returned no execution_id: {resp!r}")
+    call = create_record(
+        "calls",
+        {
+            "id": new_id("call"),
+            "workspace_id": wid,
+            "campaign_id": campaign["id"],
+            "lead_id": lead["id"],
+            "opportunity_id": lead.get("opportunity_id"),
+            "agent_id": agent["id"],
+            "mode": "live",
+            "label": "Live Bolna Call",
+            "outcome": "Queued",
+            "duration_sec": 0,
+            "language": body.language or campaign.get("language") or "en",
+            "status": (resp or {}).get("status") or "queued",
+            "bolna_execution_id": execution_id,
+            "bolna_response": resp,
+            "started_at": utcnow(),
+            "is_demo": False,
+            "retry_eligible": False,
+        },
+    )
+    audit(wid, user["id"], "dispatch_call", "call", call["id"], {"execution_id": execution_id})
+    return {
+        "label": "Live Bolna Call",
+        "call": call,
+        "transcript": None,
+        "qualification": None,
+        "task": None,
+        "next_best_action": None,
+        "agent_turns": [],
+        "retry_eligible": False,
+        "execution_id": execution_id,
+    }
+
+
+def _process_bolna_execution(payload: dict) -> dict | None:
+    execution_id = payload.get("execution_id") or payload.get("id")
+    if not execution_id:
+        return None
+    call = None
+    for c in get_all("calls"):
+        if c.get("bolna_execution_id") == execution_id:
+            call = c
+            break
+    if not call:
+        log.info("Bolna execution %s has no matching call record", execution_id)
+        return None
+    wid = call["workspace_id"]
+    lead = get_by_id("leads", call.get("lead_id")) or {}
+    updates: dict = {"status": payload.get("status") or call.get("status")}
+    duration = payload.get("conversation_time") or payload.get("total_duration") or 0
+    if duration:
+        try:
+            updates["duration_sec"] = int(float(duration))
+        except Exception:
+            pass
+    outcome = bolna_client.extract_outcome(payload)
+    updates["outcome"] = outcome
+    if payload.get("recording_url"):
+        updates["recording_url"] = payload.get("recording_url")
+    transcript_turns = bolna_client.extract_transcript_turns(payload)
+    transcript = None
+    qualification = None
+    task = None
+    if transcript_turns:
+        transcript = next((t for t in by_workspace("transcripts", wid) if t.get("call_id") == call["id"]), None)
+        transcript_payload = {
+            "turns": transcript_turns,
+            "summary": (payload.get("summary") or ""),
+            "interest_level": payload.get("extracted_data", {}).get("interest_level") if isinstance(payload.get("extracted_data"), dict) else None,
+            "source": "bolna",
+        }
+        if transcript:
+            transcript = update_record("transcripts", transcript["id"], transcript_payload)
+        else:
+            transcript = create_record(
+                "transcripts",
+                {
+                    "id": new_id("tr"),
+                    "workspace_id": wid,
+                    "call_id": call["id"],
+                    **transcript_payload,
+                    "is_demo": False,
+                },
+            )
+    extracted = payload.get("extracted_data") if isinstance(payload.get("extracted_data"), dict) else {}
+    intent = (extracted.get("interest_level") or "").lower()
+    if intent in ("interested", "high_intent"):
+        high_intent = True
+        interest_level = "Interested"
+    elif intent in ("not_interested", "opted_out"):
+        high_intent = False
+        interest_level = "Not Interested"
+    elif outcome == "Voicemail":
+        high_intent = False
+        interest_level = "Unknown"
+    else:
+        high_intent = bool(extracted.get("high_intent"))
+        interest_level = (
+            "Interested" if high_intent
+            else "Callback" if outcome == "Callback Requested"
+            else "Not Interested" if outcome == "Not Interested"
+            else "Unknown"
+        )
+    qual_payload = {
+        "interest_level": interest_level,
+        "requirements": extracted.get("requirements"),
+        "timeline": extracted.get("timeline"),
+        "budget": extracted.get("budget"),
+        "technology": extracted.get("technology"),
+        "decision_stage": extracted.get("decision_stage"),
+        "high_intent": high_intent,
+        "evidence": extracted.get("evidence") or [],
+        "missing_information": extracted.get("missing_information") or [],
+    }
+    qualification = next((q for q in by_workspace("qualifications", wid) if q.get("call_id") == call["id"]), None)
+    if qualification:
+        qualification = update_record("qualifications", qualification["id"], qual_payload)
+    else:
+        qualification = create_record(
+            "qualifications",
+            {
+                "id": new_id("qual"),
+                "workspace_id": wid,
+                "call_id": call["id"],
+                "lead_id": call.get("lead_id"),
+                "opportunity_id": call.get("opportunity_id"),
+                **qual_payload,
+                "is_demo": False,
+                "created_at": utcnow(),
+            },
+        )
+    if lead:
+        stage_map = {
+            "Interested": "qualified",
+            "Not Interested": "lost",
+            "Callback": "contacted",
+            "Unknown": "contacted",
+        }
+        update_record("leads", lead["id"], {
+            "pipeline_stage": stage_map.get(interest_level, "contacted"),
+            "intent_level": interest_level,
+            "qualification_status": "complete" if interest_level in ("Interested", "Not Interested") else "in_progress",
+            "last_updated": utcnow(),
+        })
+    if high_intent and outcome != "Not Interested":
+        due = (datetime.now(timezone.utc) + timedelta(days=1)).date().isoformat()
+        existing_tasks = [t for t in by_workspace("tasks", wid) if t.get("call_id") == call["id"]]
+        if not existing_tasks:
+            task = create_record(
+                "tasks",
+                {
+                    "id": new_id("task"),
+                    "workspace_id": wid,
+                    "title": f"Follow up with {lead.get('company') or lead.get('name') or 'prospect'}",
+                    "priority": "HIGH",
+                    "due": due,
+                    "reason": extracted.get("banner_reason") or "Bolna call flagged high intent",
+                    "status": "open",
+                    "lead_id": call.get("lead_id"),
+                    "opportunity_id": call.get("opportunity_id"),
+                    "call_id": call["id"],
+                    "source": "bolna",
+                    "is_demo": False,
+                    "created_at": utcnow(),
+                },
+            )
+            create_record(
+                "notifications",
+                {
+                    "id": new_id("ntf"),
+                    "workspace_id": wid,
+                    "type": "high_intent",
+                    "title": "HIGH INTENT PROSPECT",
+                    "body": task["reason"],
+                    "opportunity_id": call.get("opportunity_id"),
+                    "read": False,
+                    "is_demo": False,
+                    "created_at": utcnow(),
+                },
+            )
+    if interest_level == "Not Interested" and lead:
+        create_record(
+            "opt_outs",
+            {
+                "id": new_id("opt"),
+                "workspace_id": wid,
+                "phone": lead.get("phone"),
+                "email": lead.get("email"),
+                "reason": "not_interested",
+                "created_at": utcnow(),
+            },
+        )
+    update_record("calls", call["id"], updates)
+    _bump_analytics(wid, outcome, call.get("duration_sec") or 0)
+    return {
+        "call_id": call["id"],
+        "outcome": outcome,
+        "transcript_id": transcript["id"] if transcript else None,
+        "qualification_id": qualification["id"],
+        "task_id": task["id"] if task else None,
+    }
+
+
+@app.post("/api/v1/bolna/webhook")
+async def bolna_webhook(request: Request):
+    raw = await request.body()
+    try:
+        payload = json.loads(raw) if raw else {}
+    except Exception:
+        log.warning("Bolna webhook: non-JSON payload (%d bytes)", len(raw))
+        raise HTTPException(400, "Invalid JSON")
+    result = _process_bolna_execution(payload)
+    return {"ok": True, "processed": bool(result), **({"details": result} if result else {})}
+
+
+@app.get("/api/v1/bolna/health")
+def bolna_health(user=Depends(current_user)):
+    return live_voice.health()
+
+
+@app.post("/api/v1/calls/{call_id}/reconcile")
+def reconcile_call(call_id: str, wid: str = Depends(workspace_id)):
+    call = get_by_id("calls", call_id)
+    if not call or call.get("workspace_id") != wid:
+        raise HTTPException(404, "Not found")
+    eid = call.get("bolna_execution_id")
+    if not eid:
+        raise HTTPException(400, "Call has no bolna execution id")
+    if not bolna_client.is_configured():
+        raise HTTPException(400, "Bolna not configured")
+    try:
+        payload = bolna_client.get_execution(eid)
+    except bolna_client.BolnaError as e:
+        raise HTTPException(502, f"Bolna fetch failed: {e}")
+    result = _process_bolna_execution(payload)
+    return {"execution": payload, "processed": result}
 
 
 def _summarize(result: dict, lead: dict) -> str:
