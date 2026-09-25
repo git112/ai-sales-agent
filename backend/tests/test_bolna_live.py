@@ -210,3 +210,44 @@ def test_webhook_reconcile_upserts_call_record(monkeypatch):
     assert body["processed"] is True
     assert body["details"]["outcome"] == "Connected"
     assert body["details"]["call_id"] == cid
+
+def test_bolna_webhook_human_handoff_sends_calendly_sms():
+    """Live Bolna call: prospect asks for a human → tracked Calendly SMS + pending booking."""
+    import uuid
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app.store import by_workspace, create_record, get_by_id, new_id
+
+    client = TestClient(app)
+    wid = "workspace_001"
+    exec_id = f"exec-handoff-{uuid.uuid4().hex[:8]}"
+    lead_id = new_id("lead")
+    create_record("leads", {
+        "id": lead_id, "workspace_id": wid, "company": "Acme Handoff Co",
+        "name": "Sam Lead", "phone": "+15551234000", "pipeline_stage": "new",
+    })
+    cid = new_id("call")
+    create_record("calls", {
+        "id": cid, "workspace_id": wid, "lead_id": lead_id, "agent_id": "agent-y",
+        "bolna_execution_id": exec_id, "mode": "live", "outcome": "Queued", "is_demo": False,
+    })
+    payload = {
+        "execution_id": exec_id, "status": "completed", "conversation_time": 55,
+        "transcript": [
+            {"role": "assistant", "content": "How can I help?"},
+            {"role": "user", "content": "I want to speak with a human specialist please"},
+        ],
+        "extracted_data": {"interest_level": "interested"},
+    }
+    r = client.post("/api/v1/bolna/webhook", json=payload)
+    assert r.status_code == 200, r.text
+    details = r.json()["details"]
+    assert details["calendly_sms_sent"] is True
+    assert details["outcome"] == "Escalated"
+    assert "calendly.com" in (details.get("calendly_link") or "")
+    call = get_by_id("calls", cid)
+    assert call.get("escalated") is True
+    assert call.get("calendly_status") == "pending_booking"
+    bookings = [b for b in by_workspace("calendly_bookings", wid) if b.get("lead_id") == lead_id]
+    assert len(bookings) == 1
+    assert bookings[0]["status"] == "pending_booking"

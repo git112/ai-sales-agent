@@ -73,6 +73,10 @@ export default function CalendlyTracker() {
     setBookings(bRes.data);
     setLeads(lRes.data);
     setCalendlyConfig(cfgRes.data);
+    // Prefill public webhook host from server config (ngrok / API_BASE_URL)
+    if (!webhookUrl && cfgRes.data?.api_base_url) {
+      setWebhookUrl(cfgRes.data.api_base_url);
+    }
   };
 
   useEffect(() => { load(); }, []);
@@ -178,6 +182,19 @@ export default function CalendlyTracker() {
           <p className="text-sm text-slate-500 mt-1">
             AI detects human-handoff intent during calls and texts a tracked Calendly link. Unbooked leads are auto re-dialed.
           </p>
+          {calendlyConfig && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              <span className={`badge text-xs border ${calendlyConfig.booking_url ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-500 border-slate-200"}`}>
+                Link {calendlyConfig.booking_url ? "set" : "missing"}
+              </span>
+              <span className={`badge text-xs border ${(calendlyConfig.has_access_token || calendlyConfig.has_pat) ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
+                Token {(calendlyConfig.has_access_token || calendlyConfig.has_pat) ? "connected" : "needed"}
+              </span>
+              <span className={`badge text-xs border ${calendlyConfig.has_webhook_secret ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}`}>
+                Booking webhook {calendlyConfig.has_webhook_secret ? "active" : "not registered"}
+              </span>
+            </div>
+          )}
         </div>
         <button
           id="btn-connect-calendly"
@@ -206,21 +223,31 @@ export default function CalendlyTracker() {
                   <Zap className="w-4 h-4 text-violet-600" />
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold text-violet-900 text-sm">Option A — Connect via OAuth (Recommended)</div>
-                  <p className="text-xs text-violet-700 mt-0.5 mb-2">
-                    One click. Calendly grants all required scopes automatically including <code className="bg-violet-100 px-1 rounded">scheduled_events:read</code>.
-                    Webhook is registered and signing key saved instantly.
+                  <div className="font-semibold text-violet-900 text-sm">Connect via OAuth</div>
+                  <p className="text-xs text-violet-700 mt-0.5 mb-3">
+                    Calendly only accepts OAuth if the Redirect URI matches <em>exactly</em>. Paste this into your OAuth app at{" "}
+                    <a href="https://developer.calendly.com" target="_blank" rel="noreferrer" className="underline font-semibold">developer.calendly.com</a>, save, then click Connect.
                   </p>
-                  <div className="text-xs text-violet-600 mb-3">
-                    First, create an OAuth app at{" "}
-                    <a href="https://developer.calendly.com" target="_blank" rel="noreferrer" className="underline font-semibold">developer.calendly.com</a>
-                    {" "}with redirect URI: <code className="bg-violet-100 px-1 rounded">http://localhost:8000/api/v1/calendly/oauth/callback</code>
-                    {" "}then set <code className="bg-violet-100 px-1 rounded">CALENDLY_CLIENT_ID</code> and{" "}
-                    <code className="bg-violet-100 px-1 rounded">CALENDLY_CLIENT_SECRET</code> in .env.
+                  <div className="flex items-stretch gap-2 mb-3">
+                    <code className="flex-1 bg-white border border-violet-200 rounded-lg px-3 py-2 text-[11px] font-mono text-slate-800 break-all">
+                      {calendlyConfig?.redirect_uri || "http://localhost:8000/api/v1/calendly/oauth/callback"}
+                    </code>
+                    <button
+                      type="button"
+                      className="btn btn-ghost text-xs border border-violet-200 text-violet-700 shrink-0"
+                      onClick={() => navigator.clipboard.writeText(calendlyConfig?.redirect_uri || "http://localhost:8000/api/v1/calendly/oauth/callback")}
+                    >
+                      Copy
+                    </button>
                   </div>
+                  <ol className="text-xs text-violet-700 list-decimal pl-4 mb-3 space-y-1">
+                    <li>Open your Calendly OAuth app → Redirect URI</li>
+                    <li>Paste the URI above (no trailing slash) and Save</li>
+                    <li>Click Connect — you will confirm, then authorize</li>
+                  </ol>
                   <a
                     id="btn-oauth-connect"
-                    href="http://localhost:8000/api/v1/calendly/oauth/start"
+                    href={calendlyConfig?.oauth_start_url || "http://localhost:8000/api/v1/calendly/oauth/start"}
                     target="_blank"
                     rel="noreferrer"
                     className="btn btn-primary inline-flex items-center gap-2 text-sm"

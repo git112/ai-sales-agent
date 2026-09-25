@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { PhoneCall, ShieldCheck, ShieldOff, RefreshCw } from "lucide-react";
+import { PhoneCall, ShieldCheck, ShieldOff, RefreshCw, Settings as SettingsIcon } from "lucide-react";
 import { api, authStore } from "../api";
 
 export default function Settings() {
@@ -65,8 +65,19 @@ export default function Settings() {
   };
 
   return (
-    <div className="max-w-xl space-y-4">
-      <h1 className="text-2xl font-semibold">Settings</h1>
+    <div className="max-w-3xl space-y-6">
+      {/* Header */}
+      <div>
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <SettingsIcon className="w-5 h-5" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Workspace Settings</h1>
+        </div>
+        <p className="text-sm text-slate-500 mt-1">
+          Manage workspace telephony, language preferences, and CRM integration parameters.
+        </p>
+      </div>
       <div className="card p-5 bg-white shadow-xs space-y-3">
         <h2 className="font-bold text-slate-900 text-sm">Application Interface Language</h2>
         <p className="text-xs text-slate-500">Select default display and speech recognition language across all screens.</p>
@@ -217,26 +228,30 @@ export default function Settings() {
           </div>
         </div>
       </div>
-      <div className="card p-4">
-        <h2 className="font-semibold">Workspaces</h2>
-        {ws.map((w) => (
-          <div key={w.id} className="flex justify-between text-sm py-2">
-            <span>
-              {w.name} · {w.mode}
-            </span>
-            <button
-              className="btn btn-ghost"
-              onClick={async () => {
-                const { data } = await api.post(`/workspaces/${w.id}/select`);
-                authStore.setToken(data.token);
-                authStore.setWorkspace(w.id);
-                await refresh();
-              }}
-            >
-              Select
-            </button>
-          </div>
-        ))}
+      <div className="card p-5 bg-white shadow-xs space-y-3">
+        <h2 className="font-bold text-slate-900 text-sm">Tenant Workspaces</h2>
+        <p className="text-xs text-slate-500">Switch active workspace environment context.</p>
+        <div className="divide-y divide-slate-100">
+          {ws.map((w) => (
+            <div key={w.id} className="flex items-center justify-between text-sm py-3">
+              <div>
+                <span className="font-semibold text-slate-800">{w.name}</span>
+                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-medium uppercase">{w.mode}</span>
+              </div>
+              <button
+                className="btn btn-ghost text-xs px-3 py-1.5"
+                onClick={async () => {
+                  const { data } = await api.post(`/workspaces/${w.id}/select`);
+                  authStore.setToken(data.token);
+                  authStore.setWorkspace(w.id);
+                  await refresh();
+                }}
+              >
+                Select
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

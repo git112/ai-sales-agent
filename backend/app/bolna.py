@@ -110,10 +110,12 @@ def _system_prompt_for(lang: str, agent: dict) -> str:
         f"Internal IT handoff: {s['internal_it']} "
         f"If the prospect is interested, respond with: {s['interested']} {s['closing']} "
         f"If they want a callback: {s['callback']} "
-        f"If they ask for a human: {s['handoff']} "
+        f"If they ask for a human / specialist / real person: {s['handoff']} "
+        "IMPORTANT: When the prospect asks to speak with a human, tell them you are texting a Calendly booking link "
+        "to their phone so they can pick a preferred timeslot with the team. The system sends that SMS automatically. "
         f"If they are not interested or ask to opt out: {s['not_interested']} "
         "Never invent pricing, contacts, or commitments. If asked something you cannot answer from approved knowledge, "
-        "offer a callback from a human specialist. "
+        "offer a callback from a human specialist and mention the Calendly link will be texted. "
         f"{guardrail_block}"
     )
     return base

@@ -65,7 +65,7 @@ export default function AppShell() {
           <Link to="/" className="flex items-center gap-3">
             <span className="logo-mark">L</span>
             <div>
-              <div className="font-bold text-slate-900 leading-none text-base">Lumina</div>
+              <div className="font-bold text-slate-900 leading-none text-base font-display">Lumina</div>
               <div className="text-[11px] font-medium text-slate-500 mt-1">Autonomous Sales Agent</div>
             </div>
           </Link>

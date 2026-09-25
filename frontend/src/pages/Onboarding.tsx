@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Compass, Sparkles, CheckCircle2, ArrowRight, ArrowLeft, Globe } from "lucide-react";
 import { api } from "../api";
 
 export default function Onboarding() {
@@ -75,10 +76,21 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="max-w-3xl">
-      <h1 className="text-2xl font-semibold">AI-Powered Business Setup</h1>
-      <p className="text-gray-500 text-sm mt-1">Configure your company profile and let the AI structure your go-to-market intelligence. Approve the profile before activating discovery.</p>
-      <div className="flex gap-2 mt-4 text-xs flex-wrap">
+    <div className="max-w-3xl space-y-6">
+      {/* Header */}
+      <div>
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <Compass className="w-5 h-5" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight font-display">AI-Powered Business Setup</h1>
+        </div>
+        <p className="text-sm text-slate-500 mt-1">
+          Configure your company profile and let the AI structure your go-to-market intelligence. Approve the profile before activating discovery.
+        </p>
+      </div>
+
+      <div className="flex gap-2 text-xs flex-wrap">
         {[
           { n: 1, label: "Company" },
           { n: 2, label: "Products" },
@@ -86,7 +98,14 @@ export default function Onboarding() {
           { n: 4, label: "Knowledge" },
           { n: 5, label: "AI Review" },
         ].map(({ n, label }) => (
-          <span key={n} className={`px-3 py-1 rounded-full font-medium ${step === n ? "bg-indigo-600 text-white" : "bg-gray-100 text-gray-500"}`}>
+          <span
+            key={n}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              step === n
+                ? "bg-indigo-600 text-white shadow-xs"
+                : "bg-white border border-slate-200 text-slate-600"
+            }`}
+          >
             {label}
           </span>
         ))}

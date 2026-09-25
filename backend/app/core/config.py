@@ -4,6 +4,16 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT = Path(__file__).resolve().parents[3]
 
+# Push root .env into os.environ so modules that use os.getenv (Calendly,
+# Twilio, etc.) see the same values as pydantic Settings — without requiring
+# a shell export or a manual restart dance after editing .env.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(ROOT / ".env", override=False)
+except ImportError:
+    pass
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=(str(ROOT / ".env"), ".env"), extra="ignore")

@@ -224,6 +224,28 @@ def send_calendly_sms(
     booking_id = new_id("cal_bk")
     calendly_link = _build_calendly_link(lead_id, booking_id)
 
+    # Compose SMS — short, personal, direct
+    sms_body = (
+        f"Hi {contact_name}! A Northwind Digital specialist is ready for your call. "
+        f"Pick your preferred time here: {calendly_link}"
+    )
+
+    # Send SMS first so we know the real delivery channel
+    sms_log = dispatch_sms(
+        workspace_id=workspace_id,
+        to_phone=contact_phone,
+        body=sms_body,
+        lead_id=lead_id,
+        call_id=call_id,
+        campaign_id=campaign_id,
+        metadata={
+            "booking_id": booking_id,
+            "calendly_link": calendly_link,
+            "type": "human_handoff_calendly_link",
+        },
+    )
+    delivery_channel = sms_log.get("delivery_channel") or "simulated_sms"
+
     # Create Calendly booking tracking record
     booking_record = create_record(
         "calendly_bookings",
@@ -238,7 +260,8 @@ def send_calendly_sms(
             "company": lead.get("company"),
             "phone": contact_phone,
             "calendly_link": calendly_link,
-            "delivery_channel": "simulated_sms",
+            "delivery_channel": delivery_channel,
+            "sms_id": sms_log.get("id"),
             "status": "pending_booking",  # "pending_booking" | "booked" | "recalled"
             "preferred_slots": PREFERRED_TIMESLOTS,
             "created_at": utcnow(),
@@ -246,27 +269,6 @@ def send_calendly_sms(
             "recalled_at": None,
             "booked_at": None,
             "booking_details": None,
-        },
-    )
-
-    # Compose SMS — short, personal, direct
-    sms_body = (
-        f"Hi {contact_name}! A Northwind Digital specialist is ready for your call. "
-        f"Pick your preferred time here: {calendly_link}"
-    )
-
-    # Send SMS
-    sms_log = dispatch_sms(
-        workspace_id=workspace_id,
-        to_phone=contact_phone,
-        body=sms_body,
-        lead_id=lead_id,
-        call_id=call_id,
-        campaign_id=campaign_id,
-        metadata={
-            "booking_id": booking_id,
-            "calendly_link": calendly_link,
-            "type": "human_handoff_calendly_link",
         },
     )
 
@@ -449,8 +451,65 @@ def complete_calendly_booking(
     }
 
 
+def _reload_env() -> None:
+    """Re-read project .env into os.environ (picks up edits without process restart)."""
+    try:
+        from dotenv import load_dotenv
+        from app.core.config import ROOT
+        load_dotenv(ROOT / ".env", override=True)
+    except Exception:
+        pass
+
+
+def get_oauth_redirect_uri() -> str:
+    """
+    Exact Redirect URI sent to Calendly. MUST match the value saved on the
+    OAuth app at https://developer.calendly.com — character for character
+    (no trailing slash, http not https for localhost).
+    """
+    _reload_env()
+    explicit = (os.getenv("CALENDLY_REDIRECT_URI") or "").strip().rstrip("/")
+    if explicit:
+        return explicit
+    base = (os.getenv("CALENDLY_OAUTH_REDIRECT_BASE") or "http://localhost:8000").strip().rstrip("/")
+    return f"{base}/api/v1/calendly/oauth/callback"
+
+
+def get_oauth_client() -> dict:
+    """Return OAuth client credentials + redirect URI (after refreshing .env)."""
+    _reload_env()
+    return {
+        "client_id": (os.getenv("CALENDLY_CLIENT_ID") or "").strip(),
+        "client_secret": (os.getenv("CALENDLY_CLIENT_SECRET") or "").strip(),
+        "redirect_uri": get_oauth_redirect_uri(),
+        "webhook_base": (os.getenv("API_BASE_URL") or "http://localhost:8000").strip().rstrip("/"),
+    }
+
+
+def build_oauth_authorize_url(*, state: str = "lumina") -> str:
+    """Full Calendly authorize URL using the configured redirect URI."""
+    from urllib.parse import urlencode
+
+    cfg = get_oauth_client()
+    if not cfg["client_id"]:
+        raise ValueError("CALENDLY_CLIENT_ID is not set")
+    params = {
+        "client_id": cfg["client_id"],
+        "response_type": "code",
+        "redirect_uri": cfg["redirect_uri"],
+        "state": state,
+    }
+    return f"https://auth.calendly.com/oauth/authorize?{urlencode(params)}"
+
+
 def _get_calendly_token() -> str:
-    return os.getenv("CALENDLY_ACCESS_TOKEN", "")
+    """OAuth access token preferred; fall back to Personal Access Token (PAT)."""
+    _reload_env()
+    return (
+        os.getenv("CALENDLY_ACCESS_TOKEN", "").strip()
+        or os.getenv("CALENDLY_PAT", "").strip()
+        or ""
+    )
 
 
 def _get_calendly_event_type_uri() -> str:

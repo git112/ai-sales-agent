@@ -112,9 +112,17 @@ export default function OpportunityDetail() {
         </button>
         {leadMsg && <span className="text-sm text-emerald-700 font-medium self-center">{leadMsg}</span>}
       </div>
-      <div className="flex flex-wrap gap-1 border-b border-gray-200">
+      <div className="flex flex-wrap gap-2 border-b border-slate-200">
         {tabs.map((t) => (
-          <button key={t} className={`px-3 py-2 text-sm ${tab === t ? "border-b-2 border-blue-700 font-semibold" : "text-gray-500"}`} onClick={() => setTab(t)}>
+          <button
+            key={t}
+            className={`px-4 py-2 text-xs font-semibold rounded-t-lg transition-all ${
+              tab === t
+                ? "border-b-2 border-indigo-600 text-indigo-700 bg-indigo-50/50"
+                : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+            }`}
+            onClick={() => setTab(t)}
+          >
             {t}
           </button>
         ))}
@@ -284,46 +292,48 @@ function DNA({ o, company, signals, score }: any) {
   ];
   return (
     <div className="grid lg:grid-cols-3 gap-4">
-      <div className="lg:col-span-2 card p-6">
-        <h3 className="font-display text-2xl">Opportunity DNA</h3>
+      <div className="lg:col-span-2 card p-6 bg-white shadow-xs">
+        <h3 className="font-display text-2xl font-bold text-slate-900">Opportunity DNA</h3>
         <div className="grid md:grid-cols-2 gap-4 mt-4">
           {rows.map(([k, v]) => (
-            <div key={k}>
-              <div className="text-xs uppercase tracking-wide text-gray-400">{k}</div>
-              <div className="text-sm mt-1">{v}</div>
+            <div key={k} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="text-[11px] uppercase tracking-wider font-semibold text-slate-400">{k}</div>
+              <div className="text-sm font-medium text-slate-800 mt-1">{v || "—"}</div>
             </div>
           ))}
         </div>
         <div className="mt-6">
-          <div className="text-xs uppercase text-gray-400">Buying signals</div>
+          <div className="text-xs uppercase font-semibold tracking-wider text-slate-400">Buying signals</div>
           <div className="flex flex-wrap gap-2 mt-2">
             {signals.map((s: any) => (
-              <span key={s.id} className="badge bg-blue-50 text-blue-800">
+              <span key={s.id} className="badge bg-indigo-50 text-indigo-700 border border-indigo-200">
                 {s.signal_type}
               </span>
             ))}
           </div>
         </div>
         <div className="grid md:grid-cols-2 gap-4 mt-6">
-          <div>
-            <div className="text-xs uppercase text-gray-400">Why match</div>
-            <p className="text-sm mt-1">{o.why_match}</p>
+          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+            <div className="text-xs uppercase font-semibold tracking-wider text-indigo-600">Why match</div>
+            <p className="text-sm text-slate-700 mt-1 leading-relaxed">{o.why_match}</p>
           </div>
-          <div>
-            <div className="text-xs uppercase text-gray-400">Why now</div>
-            <p className="text-sm mt-1">{o.why_now}</p>
+          <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+            <div className="text-xs uppercase font-semibold tracking-wider text-indigo-600">Why now</div>
+            <p className="text-sm text-slate-700 mt-1 leading-relaxed">{o.why_now}</p>
           </div>
         </div>
-        <div className="mt-4 text-sm">
-          <strong>Risks:</strong> {(o.risks || []).join(" ")}
+        <div className="mt-4 text-sm text-slate-700">
+          <strong className="text-slate-900">Risks:</strong> {(o.risks || []).join(" ") || "None identified"}
         </div>
-        <div className="text-sm">
-          <strong>Missing:</strong> {(o.missing_information || []).join(", ")}
+        <div className="text-sm text-slate-700">
+          <strong className="text-slate-900">Missing:</strong> {(o.missing_information || []).join(", ") || "None"}
         </div>
-        <div className="mt-3 text-sm font-medium text-blue-900">Recommended: {o.recommended_action}</div>
+        <div className="mt-3 p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl text-xs font-semibold text-indigo-900">
+          Recommended Next Action: {o.recommended_action}
+        </div>
       </div>
-      <div className="card p-6">
-        <div className="text-xs text-gray-500">Score breakdown</div>
+      <div className="card p-6 bg-white shadow-xs">
+        <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Score Breakdown</div>
         {[
           ["Service match", score.service_match],
           ["Intent", score.intent_score],
@@ -332,16 +342,16 @@ function DNA({ o, company, signals, score }: any) {
           ["Company fit", score.company_fit],
         ].map(([k, v]) => (
           <div key={k} className="mt-3">
-            <div className="flex justify-between text-xs">
+            <div className="flex justify-between text-xs font-medium text-slate-700">
               <span>{k}</span>
-              <span>{v}</span>
+              <span className="font-bold text-slate-900">{v || 0}</span>
             </div>
-              <div className="h-2 bg-gray-100 rounded-full mt-1 overflow-hidden">
-                <div className="h-2 rounded-full bg-gradient-to-r from-[#b8862b] to-[#f3d48a]" style={{ width: `${v || 0}%` }} />
-              </div>
+            <div className="h-2 bg-slate-100 rounded-full mt-1 overflow-hidden">
+              <div className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600" style={{ width: `${v || 0}%` }} />
+            </div>
           </div>
         ))}
-        <p className="text-[11px] text-gray-400 mt-4">{score.disclaimer}</p>
+        <p className="text-[11px] text-slate-400 mt-4">{score.disclaimer}</p>
         <div className="mt-4">
           <h4 className="text-sm font-semibold">Market intelligence</h4>
           <p className="text-xs text-gray-500">Open Enrichment / signals. Funding is marked not detected when absent.</p>

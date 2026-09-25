@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Layers, Plus, Filter, Download, Trash2, Edit3, CheckCircle2 } from "lucide-react";
 import { api } from "../api";
 
 const FIELDS = [
@@ -40,8 +41,19 @@ export default function Segments() {
   const body = { name, type, filters, lead_ids: type === "static" ? (preview?.leads || []).map((l: any) => l.id) : [], active: true };
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold">Lead segments</h1>
+    <div className="space-y-6 max-w-4xl">
+      {/* Header */}
+      <div>
+        <div className="flex items-center gap-2.5">
+          <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+            <Layers className="w-5 h-5" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Lead Segments & Cohorts</h1>
+        </div>
+        <p className="text-sm text-slate-500 mt-1">
+          Dynamic criteria-based filtering and static target groups for targeted outreach campaigns.
+        </p>
+      </div>
       <div className="card p-4 mt-4 space-y-3">
         <input className="input" value={name} onChange={(e) => setName(e.target.value)} />
         <select className="input max-w-xs" value={type} onChange={(e) => setType(e.target.value)}>
@@ -96,53 +108,81 @@ export default function Segments() {
             Save segment
           </button>
         </div>
-        {preview && <p className="text-sm">Matching leads: {preview.count}</p>}
+        {preview && <p className="text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg inline-block">Matching leads: {preview.count}</p>}
       </div>
-      {rows.map((s) => (
-        <div key={s.id} className="card p-4 mt-3">
-          <div className="font-medium">
-            {s.name} · {s.type} · {s.active === false ? "inactive" : "active"} · Matching leads: {s.count}
+
+      <div className="space-y-3">
+        <h2 className="font-bold text-slate-900 text-sm uppercase tracking-wider">Configured Segments ({rows.length})</h2>
+        {rows.map((s) => (
+          <div key={s.id} className="card p-5 bg-white shadow-xs space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-slate-900 text-base">{s.name}</span>
+                <span className="badge bg-indigo-50 text-indigo-700 border border-indigo-200">{s.type}</span>
+                <span className={`badge ${s.active === false ? "bg-slate-100 text-slate-600" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}>
+                  {s.active === false ? "inactive" : "active"}
+                </span>
+              </div>
+              <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100">
+                {s.count ?? 0} leads
+              </span>
+            </div>
+
+            <div className="text-xs text-slate-500 font-medium">
+              Created {s.created_at} · Updated {s.updated_at || s.created_at}
+            </div>
+
+            <div className="p-2.5 bg-slate-50 border border-slate-200/80 rounded-lg text-xs font-mono text-slate-700 overflow-x-auto">
+              {JSON.stringify(s.filters)}
+            </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <div className="text-xs text-slate-500 truncate max-w-md">
+                {(s.leads || []).map((l: any) => l.company).join(", ") || "No leads matched yet"}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  className="btn btn-ghost text-xs py-1.5 px-3 flex items-center gap-1"
+                  onClick={() => {
+                    setEditId(s.id);
+                    setName(s.name);
+                    setType(s.type);
+                    setFilters(Array.isArray(s.filters) ? s.filters : [{ field: "location", op: "contains", value: s.filters?.location_contains || "India" }]);
+                  }}
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  Edit
+                </button>
+                <button
+                  className="btn btn-ghost text-xs py-1.5 px-3 flex items-center gap-1"
+                  onClick={async () => {
+                    const res = await api.get("/leads/export", { params: { format: "csv", segment_id: s.id }, responseType: "blob" });
+                    const url = URL.createObjectURL(res.data);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "segment.csv";
+                    a.click();
+                  }}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  CSV
+                </button>
+                <button
+                  className="btn btn-danger text-xs py-1.5 px-2.5 flex items-center gap-1"
+                  onClick={async () => {
+                    if (confirm("Delete this segment?")) {
+                      await api.delete(`/segments/${s.id}`);
+                      load();
+                    }
+                  }}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
-          <div className="text-xs text-gray-500 mt-1">Created {s.created_at} · Updated {s.updated_at || s.created_at}</div>
-          <div className="text-sm text-gray-600 mt-1">{JSON.stringify(s.filters)}</div>
-          <div className="text-sm text-gray-600">{(s.leads || []).map((l: any) => l.company).join(", ") || "Empty"}</div>
-          <div className="flex gap-2 mt-2">
-            <button
-              className="btn btn-ghost"
-              onClick={() => {
-                setEditId(s.id);
-                setName(s.name);
-                setType(s.type);
-                setFilters(Array.isArray(s.filters) ? s.filters : [{ field: "location", op: "contains", value: s.filters?.location_contains || "India" }]);
-              }}
-            >
-              Edit
-            </button>
-            <button
-              className="btn btn-ghost"
-              onClick={async () => {
-                await api.delete(`/segments/${s.id}`);
-                load();
-              }}
-            >
-              Delete
-            </button>
-            <button
-              className="btn btn-ghost"
-              onClick={async () => {
-                const res = await api.get("/leads/export", { params: { format: "csv", segment_id: s.id }, responseType: "blob" });
-                const url = URL.createObjectURL(res.data);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = "segment.csv";
-                a.click();
-              }}
-            >
-              Export CSV
-            </button>
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
