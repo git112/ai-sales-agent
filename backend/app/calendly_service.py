@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import logging
 import os
+import urllib.parse
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -17,10 +19,67 @@ from app.store import (
 )
 from app.voice import scripts
 
+
+def _meta_get(key: str) -> str | None:
+    from app.db import meta_get
+    return meta_get(key)
+
+
+def _meta_set(key: str, value: str) -> None:
+    from app.db import meta_set
+    meta_set(key, value)
+
+
 log = logging.getLogger("lumina.calendly")
 
+# NOTE: CALENDLY_URL is re-read on every link build (see _get_calendly_url())
+# so .env changes take effect without restarting the server.
 DEFAULT_CALENDLY_URL = os.getenv("CALENDLY_URL", "https://calendly.com/northwind-digital/consultation")
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:8000")
+CALENDLY_API = "https://api.calendly.com"
+
+# When set, every scheduled-meeting email is sent to this address INSTEAD OF
+# the lead's own email. Use during testing when leads don't have real addresses.
+# Set to empty string in .env (DEFAULT_LEAD_EMAIL=) to fall back to per-lead email.
+DEFAULT_LEAD_EMAIL = os.getenv("DEFAULT_LEAD_EMAIL", "23it021@charusat.edu.in")
+
+
+def _resolve_send_email(lead_email: str | None) -> str:
+    """
+    Returns the address Calendly should send the confirmation email TO.
+    If DEFAULT_LEAD_EMAIL is set, it overrides the lead's own email
+    (useful for hackathon/demo mode when leads don't have real inboxes).
+    Re-reads env on every call so tests / .env edits take effect live.
+    """
+    override = (os.getenv("DEFAULT_LEAD_EMAIL", DEFAULT_LEAD_EMAIL) or "").strip()
+    if override:
+        return override
+    return (lead_email or "").strip()
+
+
+def _get_calendly_url() -> str:
+    val = os.getenv("CALENDLY_URL", "").strip()
+    return val or DEFAULT_CALENDLY_URL
+
+
+def _build_calendly_link(lead_id: str, booking_id: str, extra: dict | None = None) -> str:
+    """
+    Build a Calendly booking link the lead actually opens.
+    The base URL (CALENDLY_URL) is the public scheduling page, e.g.
+    https://calendly.com/nanditkalaria27/30min
+    We append lead/booking tracking params so the webhook fires with matching metadata.
+    Note: redirect_uri is intentionally omitted — Calendly can't reach localhost.
+    The booking confirmation comes via webhook (if CALENDLY_WEBHOOK_SECRET is set).
+    """
+    params = {
+        "lead_id": lead_id,
+        "booking_ref": booking_id,
+        "utm_source": lead_id,
+        "utm_content": booking_id,
+    }
+    if extra:
+        params.update({k: str(v) for k, v in extra.items() if v is not None})
+    return f"{_get_calendly_url()}?{urllib.parse.urlencode(params)}"
 
 PREFERRED_TIMESLOTS = [
     {
@@ -163,22 +222,7 @@ def send_calendly_sms(
     contact_name = lead.get("name") or company_name
 
     booking_id = new_id("cal_bk")
-    base_link = custom_link or DEFAULT_CALENDLY_URL
-
-    # Build tracked Calendly link:
-    # - lead_id and booking_ref go in as utm_source / utm_content so Calendly
-    #   passes them back in the webhook tracking object.
-    # - redirect_uri points to our /confirm endpoint so even without a webhook
-    #   the booking gets marked confirmed when Calendly redirects the lead.
-    confirm_url = f"{API_BASE_URL}/api/v1/calendly/confirm?booking_ref={booking_id}&lead_id={lead_id}"
-    calendly_link = (
-        f"{base_link}"
-        f"?lead_id={lead_id}"
-        f"&booking_ref={booking_id}"
-        f"&utm_source={lead_id}"
-        f"&utm_content={booking_id}"
-        f"&redirect_uri={confirm_url}"
-    )
+    calendly_link = _build_calendly_link(lead_id, booking_id)
 
     # Create Calendly booking tracking record
     booking_record = create_record(
@@ -190,9 +234,11 @@ def send_calendly_sms(
             "call_id": call_id,
             "campaign_id": campaign_id,
             "contact_name": contact_name,
+            "contact_email": lead.get("email") or "",
             "company": lead.get("company"),
             "phone": contact_phone,
             "calendly_link": calendly_link,
+            "delivery_channel": "simulated_sms",
             "status": "pending_booking",  # "pending_booking" | "booked" | "recalled"
             "preferred_slots": PREFERRED_TIMESLOTS,
             "created_at": utcnow(),
@@ -400,6 +446,359 @@ def complete_calendly_booking(
         "booking": booking,
         "details": details,
         "task": task,
+    }
+
+
+def _get_calendly_token() -> str:
+    return os.getenv("CALENDLY_ACCESS_TOKEN", "")
+
+
+def _get_calendly_event_type_uri() -> str:
+    return os.getenv("CALENDLY_EVENT_TYPE_URI", "")
+
+
+def _resolve_event_type_uri(token: str, user_uri: str = "") -> str:
+    """
+    Find the first active Calendly event_type for the authenticated user.
+    Caches the result in the _meta table so we don't hit /event_types on every call.
+    Falls back to CALENDLY_EVENT_TYPE_URI env var if the API call fails.
+    """
+    cached = _meta_get("calendly_event_type_uri")
+    if cached:
+        return cached
+
+    explicit = _get_calendly_event_type_uri()
+    if explicit:
+        _meta_set("calendly_event_type_uri", explicit)
+        return explicit
+
+    try:
+        import httpx
+        me_resp = httpx.get(
+            f"{CALENDLY_API}/users/me",
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=8.0,
+        )
+        if me_resp.status_code != 200:
+            return ""
+        me = me_resp.json().get("resource") or {}
+        user_uri = user_uri or me.get("uri") or ""
+
+        et_resp = httpx.get(
+            f"{CALENDLY_API}/event_types",
+            params={"user": user_uri, "active": "true", "count": 10},
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=8.0,
+        )
+        if et_resp.status_code != 200:
+            log.warning("Calendly event_types fetch failed: %s %s", et_resp.status_code, et_resp.text[:200])
+            return ""
+        collection = et_resp.json().get("collection") or []
+        if not collection:
+            return ""
+        uri = collection[0].get("uri") or ""
+        if uri:
+            _meta_set("calendly_event_type_uri", uri)
+        return uri
+    except Exception as exc:
+        log.warning("Calendly event_type resolution failed: %s", exc)
+        return ""
+
+
+def _create_calendly_event(
+    token: str,
+    event_type_uri: str,
+    invitee_name: str,
+    invitee_email: str,
+    start_time_iso: str,
+    end_time_iso: str | None = None,
+    booking_ref: str = "",
+) -> dict:
+    """
+    POST /scheduled_events — creates a Calendly event on behalf of an invitee.
+    Calendly fires the standard confirmation email to `invitee_email`.
+    Requires scope: scheduled_events:write.
+    """
+    try:
+        import httpx
+        payload: dict = {
+            "event_type": event_type_uri,
+            "invitee": {
+                "email": invitee_email,
+                "name": invitee_name or invitee_email,
+            },
+        }
+        if booking_ref:
+            payload["invitee"]["tracking"] = {
+                "utm_source": booking_ref,
+                "utm_content": booking_ref,
+            }
+        if end_time_iso:
+            payload["end_time"] = end_time_iso
+
+        resp = httpx.post(
+            f"{CALENDLY_API}/scheduled_events",
+            json=payload,
+            params={"start_time": start_time_iso} if not end_time_iso else None,
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            },
+            timeout=10.0,
+        )
+        if resp.status_code in (200, 201):
+            resource = resp.json().get("resource") or {}
+            return {
+                "ok": True,
+                "event_uri": resource.get("uri"),
+                "invitee_uri": (resource.get("invitee_counter") or "") if False else None,
+                "raw": resource,
+            }
+        return {
+            "ok": False,
+            "status": resp.status_code,
+            "error": resp.text[:400],
+        }
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
+
+
+def schedule_callback(
+    workspace_id: str,
+    lead_id: str,
+    parsed: dict,
+    call_id: str | None = None,
+    campaign_id: str | None = None,
+    specialist: str | None = None,
+    raw_user_text: str | None = None,
+) -> dict:
+    """
+    Create a Calendly 'pending_booking' row for a callback the prospect explicitly
+    requested by time (e.g. 'call me tomorrow at 11 AM').
+
+    Confirmation strategy:
+      1. If CALENDLY_ACCESS_TOKEN is set AND the lead has an email address,
+         POST /scheduled_events to create a real Calendly event on the lead's behalf.
+         Calendly fires its built-in confirmation email to the lead automatically.
+      2. Otherwise (or if the API call fails / scope missing), fall back to
+         Twilio SMS so the lead still gets the Calendly link.
+    """
+    lead = get_by_id("leads", lead_id) or {}
+    contact_phone = lead.get("phone") or ""
+    contact_email_original = lead.get("email") or ""
+    contact_email = _resolve_send_email(contact_email_original)
+    contact_name = lead.get("name") or lead.get("company") or "there"
+    company = lead.get("company") or ""
+
+    booking_id = new_id("cal_bk")
+    calendly_link = _build_calendly_link(lead_id, booking_id, {
+        "a1": "time_requested",
+        "a2": parsed["date"],
+        "a3": parsed["time"],
+    })
+
+    slot_title = parsed["label"]
+    chosen_specialist = specialist or "Sarah Jenkins (Solutions Architect)"
+
+    # ── Attempt Calendly API (fires built-in confirmation email) ─────────
+    calendly_api_result = {"ok": False, "skipped": True, "reason": "not_attempted"}
+    token = _get_calendly_token()
+    if token and contact_email:
+        event_type_uri = _resolve_event_type_uri(token)
+        if event_type_uri:
+            start_iso = parsed["datetime"]
+            try:
+                start_dt = datetime.fromisoformat(start_iso.replace("Z", "+00:00"))
+                end_iso = (start_dt + timedelta(minutes=30)).isoformat().replace("+00:00", "Z")
+            except Exception:
+                end_iso = None
+            calendly_api_result = _create_calendly_event(
+                token=token,
+                event_type_uri=event_type_uri,
+                invitee_name=contact_name,
+                invitee_email=contact_email,
+                start_time_iso=start_iso,
+                end_time_iso=end_iso,
+                booking_ref=booking_id,
+            )
+            if not calendly_api_result.get("ok"):
+                log.warning(
+                    "Calendly scheduled_events create failed (%s): %s — falling back to SMS",
+                    calendly_api_result.get("status"),
+                    calendly_api_result.get("error"),
+                )
+        else:
+            calendly_api_result = {"ok": False, "skipped": True, "reason": "no_event_type"}
+    else:
+        calendly_api_result = {
+            "ok": False,
+            "skipped": True,
+            "reason": "missing_token_or_email" if not token else "missing_email",
+        }
+
+    delivery_channel = "calendly_email" if calendly_api_result.get("ok") else "simulated_sms"
+
+    booking_record = create_record(
+        "calendly_bookings",
+        {
+            "id": booking_id,
+            "workspace_id": workspace_id,
+            "lead_id": lead_id,
+            "call_id": call_id,
+            "campaign_id": campaign_id,
+            "contact_name": contact_name,
+            "contact_email": contact_email,
+            "lead_email_original": contact_email_original,
+            "company": company,
+            "phone": contact_phone,
+            "calendly_link": calendly_link,
+            "status": "booked" if calendly_api_result.get("ok") else "pending_booking",
+            "preferred_slots": PREFERRED_TIMESLOTS,
+            "requested_slot": {
+                "date": parsed["date"],
+                "time": parsed["time"],
+                "label": slot_title,
+                "specialist": chosen_specialist,
+                "raw_user_text": raw_user_text or parsed["raw"],
+                "requested_at": utcnow(),
+            },
+            "calendly_event_uri": calendly_api_result.get("event_uri"),
+            "delivery_channel": delivery_channel,
+            "created_at": utcnow(),
+            "last_checked_at": utcnow(),
+            "recalled_at": None,
+            "booked_at": utcnow() if calendly_api_result.get("ok") else None,
+            "booking_details": (
+                {"event_uri": calendly_api_result.get("event_uri"), "via": "calendly_api"}
+                if calendly_api_result.get("ok")
+                else None
+            ),
+        },
+    )
+
+    # ── Fallback / supplemental SMS ──────────────────────────────────────
+    sms_log = None
+    if not calendly_api_result.get("ok") and contact_phone:
+        sms_body = (
+            f"Hi {contact_name}! Per your request, a Northwind Digital specialist will call you at "
+            f"{slot_title}. Confirm or pick a different slot here: {calendly_link}"
+        )
+        sms_log = dispatch_sms(
+            workspace_id=workspace_id,
+            to_phone=contact_phone,
+            body=sms_body,
+            lead_id=lead_id,
+            call_id=call_id,
+            campaign_id=campaign_id,
+            metadata={
+                "booking_id": booking_id,
+                "calendly_link": calendly_link,
+                "requested_slot": parsed,
+                "type": "callback_scheduled",
+                "reason": calendly_api_result.get("reason") or calendly_api_result.get("error", "fallback"),
+            },
+        )
+    elif not calendly_api_result.get("ok") and not contact_phone:
+        sms_log = {"id": new_id("sms"), "status": "no_phone_no_email", "delivery_channel": "skipped"}
+
+    if call_id:
+        update_record(
+            "calls",
+            call_id,
+            {
+                "sms_sent": bool(sms_log and sms_log.get("status") not in ("no_phone_no_email",)),
+                "sms_id": sms_log["id"] if isinstance(sms_log, dict) and sms_log.get("id") else None,
+                "calendly_link": calendly_link,
+                "calendly_status": booking_record["status"],
+                "calendly_booking_id": booking_id,
+                "calendly_event_uri": calendly_api_result.get("event_uri"),
+                "handoff_action": "callback_scheduled",
+                "requested_slot": parsed,
+            },
+        )
+
+    if lead_id and lead:
+        new_stage = "meeting_scheduled" if calendly_api_result.get("ok") else "callback_scheduled"
+        update_record(
+            "leads",
+            lead_id,
+            {
+                "pipeline_stage": new_stage,
+                "intent_level": "Interested",
+                "qualification_status": "complete" if calendly_api_result.get("ok") else "in_progress",
+                "calendly_booked": bool(calendly_api_result.get("ok")),
+                "calendly_slot": slot_title,
+                "requested_slot": parsed,
+                "last_updated": utcnow(),
+            },
+        )
+
+    create_record(
+        "tasks",
+        {
+            "id": new_id("task"),
+            "workspace_id": workspace_id,
+            "title": f"Callback: {company or contact_name} at {slot_title}",
+            "priority": "HIGH",
+            "due": parsed["date"],
+            "reason": (
+                f"Calendly event created ({calendly_api_result.get('event_uri')}). "
+                f"Confirmation email sent to {contact_email}."
+                if calendly_api_result.get("ok")
+                else f"Lead requested callback at {slot_title}. Raw: {(raw_user_text or parsed['raw'])[:200]}"
+            ),
+            "status": "open",
+            "assignee": chosen_specialist,
+            "lead_id": lead_id,
+            "opportunity_id": lead.get("opportunity_id"),
+            "created_at": utcnow(),
+            "is_demo": True,
+        },
+    )
+
+    if calendly_api_result.get("ok"):
+        notification_body = (
+            f"{contact_name} ({company}) booked {slot_title} via Calendly API. "
+            f"Confirmation email sent to {contact_email}. Event: {calendly_api_result.get('event_uri')}"
+        )
+        notification_title = f"✉️ Calendly Email Sent: {slot_title}"
+    else:
+        reason = calendly_api_result.get("reason") or calendly_api_result.get("error", "fallback")
+        notification_body = (
+            f"{contact_name} ({company}) requested a callback at {slot_title}. "
+            f"Calendly API unavailable ({reason}); SMS link dispatched."
+            if contact_phone
+            else f"{contact_name} ({company}) requested a callback at {slot_title}. "
+                 f"Calendly API unavailable ({reason}); no phone on file for fallback."
+        )
+        notification_title = f"📅 Callback Scheduled: {slot_title}"
+
+    create_record(
+        "notifications",
+        {
+            "id": new_id("ntf"),
+            "workspace_id": workspace_id,
+            "type": "callback_scheduled",
+            "title": notification_title,
+            "body": notification_body,
+            "opportunity_id": lead.get("opportunity_id"),
+            "read": False,
+            "is_demo": True,
+            "created_at": utcnow(),
+        },
+    )
+
+    return {
+        "booking": booking_record,
+        "sms": sms_log,
+        "calendly_link": calendly_link,
+        "calendly_event_uri": calendly_api_result.get("event_uri"),
+        "delivery_channel": delivery_channel,
+        "phone": contact_phone,
+        "email": contact_email,
+        "lead_email_original": contact_email_original,
+        "email_overridden": bool((os.getenv("DEFAULT_LEAD_EMAIL", DEFAULT_LEAD_EMAIL) or "").strip()) and contact_email != contact_email_original,
+        "parsed": parsed,
     }
 
 

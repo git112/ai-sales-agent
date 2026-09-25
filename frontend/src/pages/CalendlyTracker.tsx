@@ -5,6 +5,7 @@ import {
   CheckCircle2, PhoneCall, ArrowUpRight, Sparkles,
   Send, ExternalLink, Link2, AlertTriangle, KeyRound,
   Globe, ShieldCheck, Zap, Copy, Eye, EyeOff,
+  Mail, MailCheck, AlertCircle,
 } from "lucide-react";
 import { api } from "../api";
 
@@ -12,6 +13,13 @@ const STATUS_META: Record<string, { label: string; color: string; icon: any }> =
   pending_booking: { label: "Awaiting Booking", color: "bg-amber-50 text-amber-700 border border-amber-200", icon: Clock },
   booked: { label: "Booked", color: "bg-emerald-50 text-emerald-700 border border-emerald-200", icon: CheckCircle2 },
   recalled: { label: "Re-dialed", color: "bg-indigo-50 text-indigo-700 border border-indigo-200", icon: PhoneCall },
+};
+
+const DELIVERY_META: Record<string, { label: string; color: string; icon: any }> = {
+  calendly_email: { label: "Calendly Email Sent", color: "bg-emerald-50 text-emerald-700 border-emerald-200", icon: MailCheck },
+  simulated_sms:  { label: "SMS Link Sent", color: "bg-amber-50 text-amber-700 border-amber-200", icon: MessageSquare },
+  skipped:         { label: "No Channel", color: "bg-slate-100 text-slate-600 border-slate-200", icon: AlertCircle },
+  twilio:          { label: "Twilio SMS", color: "bg-violet-50 text-violet-700 border-violet-200", icon: MessageSquare },
 };
 
 const PREFERRED_SLOTS = [
@@ -24,8 +32,11 @@ const PREFERRED_SLOTS = [
 
 interface Booking {
   id: string; lead_id: string; company?: string; contact_name?: string;
+  contact_email?: string; lead_email_original?: string;
   phone?: string; calendly_link?: string; status: string; created_at: string;
   booked_at?: string; recalled_at?: string;
+  delivery_channel?: string; calendly_event_uri?: string;
+  requested_slot?: { label?: string; date?: string; time?: string; specialist?: string };
   booking_details?: { timeslot?: string; specialist?: string };
   recall_call_id?: string;
 }
@@ -40,6 +51,10 @@ export default function CalendlyTracker() {
   const [bookingBusy, setBookingBusy] = useState("");
   const [smsBusy, setSmsBusy] = useState("");
   const [recallResult, setRecallResult] = useState<any>(null);
+  const [scheduleTime, setScheduleTime] = useState<Record<string, string>>({});
+  const [scheduleBusy, setScheduleBusy] = useState<string>("");
+  const [scheduleResult, setScheduleResult] = useState<any>(null);
+  const [calendlyConfig, setCalendlyConfig] = useState<any>(null);
 
   // Calendly Connect panel state
   const [showConnect, setShowConnect] = useState(false);
@@ -50,9 +65,14 @@ export default function CalendlyTracker() {
   const [registerResult, setRegisterResult] = useState<any>(null);
 
   const load = async () => {
-    const [bRes, lRes] = await Promise.all([api.get("/calendly/bookings"), api.get("/leads")]);
+    const [bRes, lRes, cfgRes] = await Promise.all([
+      api.get("/calendly/bookings"),
+      api.get("/leads"),
+      api.get("/calendly/config").catch(() => ({ data: {} })),
+    ]);
     setBookings(bRes.data);
     setLeads(lRes.data);
+    setCalendlyConfig(cfgRes.data);
   };
 
   useEffect(() => { load(); }, []);
@@ -60,6 +80,8 @@ export default function CalendlyTracker() {
   const pending = bookings.filter((b) => b.status === "pending_booking");
   const booked = bookings.filter((b) => b.status === "booked");
   const recalled = bookings.filter((b) => b.status === "recalled");
+
+  const CALENDLY_BOOKING_URL = calendlyConfig?.booking_url || "https://calendly.com/nanditkalaria27/30min";
 
   async function sendCalendlySms(leadId: string) {
     setSmsBusy(leadId);
@@ -91,6 +113,25 @@ export default function CalendlyTracker() {
     } finally { setRecallRunning(false); }
   }
 
+  async function scheduleViaEmail(leadId: string) {
+    const text = (scheduleTime[leadId] || "").trim();
+    if (!text) return;
+    setScheduleBusy(leadId);
+    try {
+      const { data } = await api.post("/calendly/schedule-callback", {
+        lead_id: leadId, time_text: text,
+      });
+      setScheduleResult({ leadId, ...data });
+      setScheduleTime((p) => ({ ...p, [leadId]: "" }));
+      await load();
+    } catch (e: any) {
+      setScheduleResult({
+        leadId, ok: false,
+        error: e?.response?.data?.detail || "Failed to schedule",
+      });
+    } finally { setScheduleBusy(""); }
+  }
+
   async function registerWebhook() {
     setRegisterBusy(true); setRegisterResult(null);
     try {
@@ -109,7 +150,18 @@ export default function CalendlyTracker() {
   }
 
   const leadsWithoutSms = leads.filter((l) => !bookings.find((b) => b.lead_id === l.id)).slice(0, 5);
-  const CALENDLY_BASE = "https://calendly.com/northwind-digital/consultation";
+  const emailScheduled = bookings.filter((b) => b.delivery_channel === "calendly_email");
+
+  function DeliveryChip({ channel }: { channel?: string }) {
+    const meta = DELIVERY_META[channel || ""] || DELIVERY_META["simulated_sms"];
+    const Icon = meta.icon;
+    return (
+      <span className={`badge ${meta.color} border text-xs flex items-center gap-1`}>
+        <Icon className="w-3 h-3" />
+        {meta.label}
+      </span>
+    );
+  }
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -350,10 +402,11 @@ export default function CalendlyTracker() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: "Pending Booking", count: pending.length, bg: "bg-amber-50", text: "text-amber-700", border: "border-l-amber-500", icon: Clock },
+          { label: "Awaiting Booking", count: pending.length, bg: "bg-amber-50", text: "text-amber-700", border: "border-l-amber-500", icon: Clock },
           { label: "Confirmed", count: booked.length, bg: "bg-emerald-50", text: "text-emerald-700", border: "border-l-emerald-500", icon: CheckCircle2 },
+          { label: "Calendly Email Sent", count: emailScheduled.length, bg: "bg-emerald-50", text: "text-emerald-700", border: "border-l-emerald-500", icon: MailCheck },
           { label: "Auto Re-dialed", count: recalled.length, bg: "bg-indigo-50", text: "text-indigo-700", border: "border-l-indigo-500", icon: PhoneCall },
         ].map(({ label, count, bg, text, border, icon: Icon }) => (
           <div key={label} className={`card p-4 bg-white shadow-xs flex items-center gap-3 border-l-4 ${border}`}>
@@ -366,6 +419,90 @@ export default function CalendlyTracker() {
         ))}
       </div>
 
+      {/* ── Scheduled Meetings (Calendly Email) ───────────────── */}
+      {emailScheduled.length > 0 && (
+        <div className="card bg-white shadow-xs overflow-hidden border-l-4 border-l-emerald-500">
+          <div className="p-4 border-b border-emerald-100 bg-emerald-50/40 flex items-center gap-2">
+            <Mail className="w-4 h-4 text-emerald-600" />
+            <h2 className="font-bold text-slate-900">Scheduled Meetings — Calendly Email</h2>
+            <span className="ml-auto badge bg-emerald-50 text-emerald-700 border border-emerald-200">
+              {emailScheduled.length} email{emailScheduled.length !== 1 ? "s" : ""} sent
+            </span>
+          </div>
+          <div className="divide-y divide-slate-100">
+            {emailScheduled.map((b) => (
+              <div key={b.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-slate-900 text-sm">
+                      {b.company || b.contact_name || b.lead_id}
+                    </span>
+                    <DeliveryChip channel={b.delivery_channel} />
+                  </div>
+                  {b.requested_slot && (
+                    <div className="text-xs text-slate-700 mt-1">
+                      📅 <span className="font-medium">{b.requested_slot.label}</span>
+                      {b.requested_slot.specialist && (
+                        <span className="text-slate-500"> · with {b.requested_slot.specialist}</span>
+                      )}
+                    </div>
+                  )}
+                  <div className="text-xs text-slate-500 mt-1 flex items-center gap-1 flex-wrap">
+                      <Mail className="w-3 h-3" />
+                      Confirmation sent to{" "}
+                      <span className="font-mono text-slate-700">{b.contact_email}</span>
+                      {b.lead_email_original && b.lead_email_original !== b.contact_email && (
+                        <span className="text-slate-400">
+                          (lead email: <span className="font-mono">{b.lead_email_original}</span>)
+                        </span>
+                      )}
+                    </div>
+                  {b.calendly_event_uri && (
+                    <a href={b.calendly_event_uri} target="_blank" rel="noreferrer"
+                      className="text-[11px] text-indigo-600 hover:underline mt-1 inline-flex items-center gap-1">
+                      <ExternalLink className="w-3 h-3" /> {b.calendly_event_uri}
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Schedule-via-Email result banner */}
+      {scheduleResult && (
+        <div className={`p-3 rounded-xl border text-sm flex items-start gap-2 ${
+          scheduleResult.ok
+            ? "bg-emerald-50 border-emerald-200"
+            : "bg-rose-50 border-rose-200"
+        }`}>
+          {scheduleResult.ok ? <MailCheck className="w-4 h-4 text-emerald-600 mt-0.5" /> : <AlertCircle className="w-4 h-4 text-rose-600 mt-0.5" />}
+          <div className="flex-1 text-xs">
+            <div className="font-semibold text-slate-900">
+              {scheduleResult.ok
+                ? `Calendly event created · ${scheduleResult.parsed?.label}`
+                : `Failed: ${scheduleResult.error}`}
+            </div>
+            {scheduleResult.ok && (
+              <div className="text-slate-600 mt-0.5">
+                Delivery: {scheduleResult.delivery_channel} ·
+                Email to: <span className="font-mono">{scheduleResult.email}</span>
+                {scheduleResult.email_overridden && (
+                  <span className="text-slate-400 text-xs">
+                    {" "}(lead email was overridden)
+                  </span>
+                )}
+                {scheduleResult.calendly_event_uri && (
+                  <> · <a href={scheduleResult.calendly_event_uri} target="_blank" rel="noreferrer" className="underline">view event</a></>
+                )}
+              </div>
+            )}
+          </div>
+          <button className="text-slate-400 hover:text-slate-700" onClick={() => setScheduleResult(null)}>×</button>
+        </div>
+      )}
+
       {/* Calendly Link Preview */}
       <div className="card p-4 bg-white shadow-xs border border-violet-100 flex flex-col sm:flex-row sm:items-center gap-3">
         <div className="flex-1 min-w-0">
@@ -373,20 +510,20 @@ export default function CalendlyTracker() {
           <div className="flex items-center gap-2">
             <CalendarCheck2 className="w-4 h-4 text-violet-500 shrink-0" />
             <a
-              href={CALENDLY_BASE}
+              href={CALENDLY_BOOKING_URL}
               target="_blank"
               rel="noreferrer"
               className="text-sm text-violet-700 hover:underline font-medium truncate"
             >
-              {CALENDLY_BASE}
+              {CALENDLY_BOOKING_URL}
             </a>
           </div>
           <div className="text-[11px] text-slate-400 mt-0.5">
-            Lead-tracked links are sent as: <code className="bg-slate-100 px-1 rounded">{CALENDLY_BASE}?lead_id=...&booking_ref=...&utm_content=...&redirect_uri=.../confirm</code>
+            Lead-tracked links are sent as: <code className="bg-slate-100 px-1 rounded">{CALENDLY_BOOKING_URL}?lead_id=...&booking_ref=...&utm_content=...</code>
           </div>
         </div>
         <a
-          href={CALENDLY_BASE}
+          href={CALENDLY_BOOKING_URL}
           target="_blank"
           rel="noreferrer"
           className="btn btn-ghost shrink-0 flex items-center gap-1.5 text-xs"
@@ -466,15 +603,33 @@ export default function CalendlyTracker() {
               return (
                 <div key={b.id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 hover:bg-slate-50/60 transition-colors">
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-slate-900 text-sm truncate">{b.company || b.contact_name || b.lead_id}</div>
-                    <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
-                      <MessageSquare className="w-3 h-3" />
-                      SMS sent · {b.phone || "—"} · {b.created_at?.slice(0, 16).replace("T", " ")} UTC
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-slate-900 text-sm truncate">{b.company || b.contact_name || b.lead_id}</span>
+                      <DeliveryChip channel={b.delivery_channel} />
+                    </div>
+                    {b.requested_slot?.label && (
+                      <div className="text-xs text-slate-700 mt-1">
+                        📅 <span className="font-medium">{b.requested_slot.label}</span>
+                        {b.requested_slot.specialist && <span className="text-slate-500"> · {b.requested_slot.specialist}</span>}
+                      </div>
+                    )}
+                    <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
+                      <span>{b.phone || "—"}</span>
+                      {b.contact_email && (
+                        <span className="flex items-center gap-1">
+                          · <Mail className="w-3 h-3" />
+                          <span className="font-mono">{b.contact_email}</span>
+                          {b.lead_email_original && b.lead_email_original !== b.contact_email && (
+                            <span className="text-slate-400"> (orig: <span className="font-mono">{b.lead_email_original}</span>)</span>
+                          )}
+                        </span>
+                      )}
+                      <span>· {b.created_at?.slice(0, 16).replace("T", " ")} UTC</span>
                     </div>
                     {b.calendly_link && (
                       <a href={b.calendly_link} target="_blank" rel="noreferrer"
                         className="text-xs text-indigo-600 hover:underline mt-0.5 flex items-center gap-1">
-                        <ExternalLink className="w-3 h-3" />{b.calendly_link.slice(0, 60)}...
+                        <ExternalLink className="w-3 h-3" />{b.calendly_link.slice(0, 70)}...
                       </a>
                     )}
                   </div>
@@ -576,34 +731,60 @@ export default function CalendlyTracker() {
         </div>
       )}
 
-      {/* Manual SMS Dispatch */}
+      {/* Manual SMS Dispatch + Schedule via Calendly Email */}
       {leadsWithoutSms.length > 0 && (
         <div className="card bg-white shadow-xs overflow-hidden">
           <div className="p-4 border-b border-slate-100 flex items-center gap-2">
             <Send className="w-4 h-4 text-violet-500" />
-            <h2 className="font-bold text-slate-900">Send Calendly SMS to Lead</h2>
+            <h2 className="font-bold text-slate-900">Send Calendly Link to Lead</h2>
             <span className="ml-auto text-xs text-slate-400">Manual dispatch</span>
           </div>
           <div className="divide-y divide-slate-100">
             {leadsWithoutSms.map((lead) => (
-              <div key={lead.id} className="p-4 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="font-semibold text-slate-900 text-sm truncate">{lead.company}</div>
-                  <div className="text-xs text-slate-500">{lead.phone || "No phone"} · {lead.name || "—"}</div>
+              <div key={lead.id} className="p-4 flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-slate-900 text-sm truncate">{lead.company || lead.name}</div>
+                    <div className="text-xs text-slate-500">
+                      {lead.phone || "No phone"} ·{" "}
+                      <span className="font-mono">{lead.email || "—"}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {smsSent.includes(lead.id) ? (
+                      <span className="badge bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" />SMS Sent
+                      </span>
+                    ) : (
+                      <button id={`btn-sms-${lead.id}`}
+                        className="btn btn-ghost h-8 px-3 text-xs flex items-center gap-1"
+                        disabled={smsBusy === lead.id}
+                        onClick={() => sendCalendlySms(lead.id)}>
+                        <MessageSquare className="w-3.5 h-3.5 text-violet-500" />
+                        {smsBusy === lead.id ? "Sending..." : "Send SMS link"}
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {smsSent.includes(lead.id) ? (
-                  <span className="badge bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" />SMS Sent
-                  </span>
-                ) : (
-                  <button id={`btn-sms-${lead.id}`}
-                    className="btn btn-ghost h-8 px-3 text-xs flex items-center gap-1"
-                    disabled={smsBusy === lead.id}
-                    onClick={() => sendCalendlySms(lead.id)}>
-                    <MessageSquare className="w-3.5 h-3.5 text-violet-500" />
-                    {smsBusy === lead.id ? "Sending..." : "Send Calendly SMS"}
+                {/* Schedule via Calendly email */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <input
+                    id={`input-schedule-${lead.id}`}
+                    placeholder="e.g. tomorrow at 11 am"
+                    className="input h-8 text-xs flex-1 min-w-[180px] max-w-xs"
+                    value={scheduleTime[lead.id] || ""}
+                    onChange={(e) => setScheduleTime((p) => ({ ...p, [lead.id]: e.target.value }))}
+                  />
+                  <button
+                    id={`btn-schedule-${lead.id}`}
+                    className="btn btn-primary h-8 px-3 text-xs flex items-center gap-1"
+                    disabled={scheduleBusy === lead.id || !(scheduleTime[lead.id] || "").trim()}
+                    onClick={() => scheduleViaEmail(lead.id)}
+                  >
+                    <MailCheck className="w-3.5 h-3.5" />
+                    {scheduleBusy === lead.id ? "Scheduling..." : "Schedule via Calendly Email"}
                   </button>
-                )}
+                </div>
               </div>
             ))}
           </div>

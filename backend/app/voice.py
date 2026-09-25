@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import re
+from datetime import datetime, timedelta, timezone
+
 from app.knowledge import knowledge_store
 from app.store import utcnow
 
@@ -277,6 +280,179 @@ def opening_message(agent: dict, locale: str = "en") -> str:
     s = scripts(locale)
     extra = agent.get("call_objective") or ""
     return (s["disclosure"] + " " + s["greeting"] + (" " + extra if extra else "")).strip()
+
+
+# ---------- Callback / time-mention parsing ----------
+# Detects phrases like:
+#   "call me tomorrow at 11 am"
+#   "11 am tomorrow morning"
+#   "today at 4:30 PM"
+#   "next Monday at 10 AM"
+#   "hitting for me tomorrow morning at eleven am"
+#   "callback at 2 pm"
+# Returns dict with date (ISO), time (HH:MM 24h), display label, or None.
+
+_WORD_TO_NUM = {
+    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7,
+    "eight": 8, "nine": 9, "ten": 10, "eleven": 11, "twelve": 12,
+    "thirteen": 13, "fourteen": 14, "fifteen": 15, "sixteen": 16,
+    "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20,
+}
+
+_DAY_KEYWORDS = {
+    "today": 0, "tonight": 0, "tomorrow": 1, "tmrw": 1, "tmrow": 1,
+    "monday": 0, "tuesday": 1, "wednesday": 2, "thursday": 3,
+    "friday": 4, "saturday": 5, "sunday": 6,
+}
+
+_TIME_PATTERNS = [
+    # 1. explicit am/pm — most specific, try first
+    re.compile(r"\b(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)\b", re.IGNORECASE),
+    # 2. 24h HH:MM
+    re.compile(r"\b(\d{1,2}):(\d{2})\b"),
+    # 3. bare hour with period hint (morning/afternoon/evening/night) on either side
+    re.compile(
+        r"(?:(?P<bare_pre>morning|afternoon|evening|night)\s+(?:at\s+)?|(?:at\s+))?(?P<bare_h>\d{1,2})(?:\s+(?:in\s+the\s+)?(?P<bare_post>morning|afternoon|evening|night))?",
+        re.IGNORECASE,
+    ),
+    # 4. word-form hour with optional am/pm
+    re.compile(r"\b(" + "|".join(_WORD_TO_NUM.keys()) + r")\s*(a\.?m\.?|p\.?m\.?|o'clock|oclock)?\b", re.IGNORECASE),
+]
+_WORD_PERIOD_HINT = re.compile(r"\b(morning|afternoon|evening|night)\b", re.IGNORECASE)
+
+
+def _next_weekday(target_weekday: int) -> datetime:
+    today = datetime.now(timezone.utc).date()
+    days_ahead = (target_weekday - today.weekday()) % 7
+    if days_ahead == 0:
+        days_ahead = 7
+    return today + timedelta(days=days_ahead)
+
+
+def _resolve_date(text: str, base: datetime.date) -> datetime.date:
+    t = text.lower()
+    if "today" in t or "tonight" in t:
+        return base
+    if "tomorrow" in t or "tmrw" in t or "tmrow" in t:
+        return base + timedelta(days=1)
+    if "day after tomorrow" in t:
+        return base + timedelta(days=2)
+    m = re.search(r"\bnext\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b", t)
+    if m:
+        return _next_weekday(_DAY_KEYWORDS[m.group(1)]) + timedelta(days=7)
+    for name, wd in _DAY_KEYWORDS.items():
+        if name in {"today", "tonight", "tomorrow", "tmrw", "tmrow"}:
+            continue
+        if re.search(rf"\b{name}\b", t):
+            d = _next_weekday(wd)
+            if d == base:
+                d = d + timedelta(days=7)
+            return d
+    return base + timedelta(days=1)
+
+
+def _parse_clock(hour: int, minute: int, ampm: str | None) -> tuple[int, int] | None:
+    if not (0 <= hour <= 23 and 0 <= minute <= 59):
+        return None
+    if ampm:
+        ampm = ampm.lower().replace(".", "")
+        if ampm == "pm" and hour < 12:
+            hour += 12
+        elif ampm == "am" and hour == 12:
+            hour = 0
+    if hour < 7:
+        hour += 12
+    return hour, minute
+
+
+def parse_callback_request(text: str, now: datetime | None = None) -> dict | None:
+    """
+    Returns:
+      {"date": "2026-09-26", "time": "11:00", "label": "Tomorrow · 11:00 AM", "raw": "..."}
+    or None if no clear time mention.
+    """
+    if not text:
+        return None
+    raw_text = text
+    work = " " + text.lower().replace("\n", " ") + " "
+
+    hour, minute, ampm = None, 0, None
+
+    for idx, pat in enumerate(_TIME_PATTERNS):
+        m = pat.search(work)
+        if not m:
+            continue
+        if idx == 0:
+            hour = int(m.group(1))
+            minute = int(m.group(2) or 0)
+            ampm = m.group(3)
+            break
+        if idx == 1:
+            hour, minute = int(m.group(1)), int(m.group(2))
+            break
+        if idx == 2:
+            groups = m.groupdict()
+            hour = int(groups["bare_h"])
+            minute = 0
+            pre = (groups.get("bare_pre") or "").lower()
+            post = (groups.get("bare_post") or "").lower()
+            period_hint = pre or post
+            if period_hint in ("afternoon", "evening", "night"):
+                ampm = "pm"
+            elif period_hint == "morning":
+                ampm = "am"
+            break
+        if idx == 3:
+            word, ampm_word = m.groups()
+            hour = _WORD_TO_NUM.get(word.lower(), -1)
+            ampm = ampm_word
+            break
+
+    if hour is None or hour < 0:
+        return None
+
+    parsed = _parse_clock(hour, minute, ampm)
+    if not parsed:
+        return None
+    hour, minute = parsed
+
+    now = now or datetime.now(timezone.utc)
+    base_date = now.date()
+
+    has_morning = bool(re.search(r"\bmorning\b", work))
+    has_evening = bool(re.search(r"\bevening\b|\bnight\b", work))
+    has_afternoon = bool(re.search(r"\bafternoon\b", work))
+
+    if ampm is None:
+        if has_morning and hour >= 7:
+            parsed = (hour, minute)
+        elif has_afternoon and hour < 12:
+            parsed = (hour + 12, minute)
+        elif has_evening and hour < 12:
+            parsed = (hour + 12, minute)
+        hour, minute = parsed
+
+    target_date = _resolve_date(work, base_date)
+    target_dt = datetime.combine(target_date, datetime.min.time(), tzinfo=timezone.utc).replace(hour=hour, minute=minute)
+    if target_dt < now - timedelta(hours=2):
+        target_dt = target_dt + timedelta(days=1)
+        target_date = target_dt.date()
+
+    label_date = (
+        "Today" if target_date == base_date
+        else "Tomorrow" if target_date == base_date + timedelta(days=1)
+        else target_date.strftime("%a %b %d")
+    )
+    label_time = target_dt.strftime("%I:%M %p").lstrip("0")
+    label = f"{label_date} · {label_time}"
+
+    return {
+        "date": target_date.isoformat(),
+        "time": f"{hour:02d}:{minute:02d}",
+        "label": label,
+        "datetime": target_dt.isoformat().replace("+00:00", "Z"),
+        "raw": raw_text.strip(),
+    }
 
 
 class DemoVoiceProvider:

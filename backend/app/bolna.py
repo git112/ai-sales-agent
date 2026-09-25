@@ -395,6 +395,20 @@ def extract_outcome(payload: dict) -> str:
 def extract_transcript_turns(payload: dict) -> list[dict]:
     raw = payload.get("transcript")
     turns: list[dict] = []
+    AGENT_ROLES = {"assistant", "agent", "ai", "bot"}
+
+    def _speaker(role: str) -> str:
+        return "agent" if (role or "").lower() in AGENT_ROLES else "prospect"
+
+    def _strip_prefix(text: str) -> tuple[str, str | None]:
+        """Bolna sometimes prefixes text with 'assistant: ' or 'user: '. Detect and strip."""
+        import re
+        m = re.match(r"^\s*(assistant|user|agent|prospect|ai|bot)\s*:\s*(.*)$", text, flags=re.IGNORECASE | re.DOTALL)
+        if m:
+            prefix = m.group(1).lower()
+            return m.group(2).strip(), ("agent" if prefix in AGENT_ROLES else "prospect")
+        return text.strip(), None
+
     if isinstance(raw, list):
         for entry in raw:
             if not isinstance(entry, dict):
@@ -403,7 +417,26 @@ def extract_transcript_turns(payload: dict) -> list[dict]:
             text = entry.get("content") or entry.get("text") or entry.get("message") or ""
             if not text:
                 continue
-            turns.append({"speaker": "agent" if role in ("assistant", "agent", "ai", "bot") else "prospect", "text": text})
+            cleaned, prefix_speaker = _strip_prefix(text)
+            if not cleaned:
+                continue
+            speaker = prefix_speaker or _speaker(role)
+            ts = entry.get("timestamp") or entry.get("ts") or entry.get("time")
+            turns.append({"speaker": speaker, "text": cleaned, **({"ts": ts} if ts else {})})
     elif isinstance(raw, str) and raw.strip():
-        turns.append({"speaker": "agent", "text": raw})
+        cleaned, prefix_speaker = _strip_prefix(raw)
+        if cleaned:
+            turns.append({"speaker": prefix_speaker or "agent", "text": cleaned})
+    elif isinstance(payload.get("conversation"), list):
+        for entry in payload["conversation"]:
+            if not isinstance(entry, dict):
+                continue
+            role = entry.get("role") or entry.get("speaker") or "agent"
+            text = entry.get("message") or entry.get("content") or entry.get("text") or ""
+            if not text:
+                continue
+            cleaned, prefix_speaker = _strip_prefix(text)
+            if not cleaned:
+                continue
+            turns.append({"speaker": prefix_speaker or _speaker(role), "text": cleaned})
     return turns

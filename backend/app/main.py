@@ -70,6 +70,17 @@ app.add_middleware(
 
 _rate: dict[str, list[float]] = defaultdict(list)
 
+# Temporary placeholder email applied to leads that don't have one on file.
+# Used so the Calendly "send confirmation email" path always has a recipient.
+# Override with DEFAULT_LEAD_EMAIL in .env when proper emails are collected.
+DEFAULT_LEAD_EMAIL = os.getenv("DEFAULT_LEAD_EMAIL", "23it021@charusat.edu.in")
+
+
+def _resolve_lead_email(provided: str | None) -> str:
+    """Return a usable email for a lead — falls back to DEFAULT_LEAD_EMAIL when missing."""
+    p = (provided or "").strip()
+    return p or DEFAULT_LEAD_EMAIL
+
 
 @app.middleware("http")
 async def rate_limit(request: Request, call_next):
@@ -788,7 +799,7 @@ def add_lead_from_opp(oid: str, wid: str = Depends(workspace_id), user=Depends(c
             "workspace_id": wid,
             "name": (contact_record or {}).get("name") or company_name,
             "company": company_name,
-            "email": (contact_record or {}).get("email") or "",
+            "email": _resolve_lead_email((contact_record or {}).get("email")),
             "phone": (contact_record or {}).get("phone") or "",
             "job_title": (contact_record or {}).get("title") or "",
             "website": o.get("source_url") or (company_record or {}).get("website") or "",
@@ -978,12 +989,14 @@ def get_lead(lid: str, wid: str = Depends(workspace_id)):
 
 @app.post("/api/v1/leads")
 def create_lead(body: LeadIn, wid: str = Depends(workspace_id), user=Depends(current_user)):
+    payload = dict(body.model_dump())
+    payload["email"] = _resolve_lead_email(payload.get("email"))
     rec = create_record(
         "leads",
         {
             "id": new_id("lead"),
             "workspace_id": wid,
-            **body.model_dump(),
+            **payload,
             "pipeline_stage": "reviewed",
             "source": "manual",
             "intent_level": "unknown",
@@ -1093,7 +1106,7 @@ def import_commit(body: ImportCommit, wid: str = Depends(workspace_id), user=Dep
     skipped = []
     for r in report["valid"]:
         mapped = {f: r.get(col) for f, col in body.mapping.items()}
-        email = mapped.get("email") or ""
+        email = _resolve_lead_email(mapped.get("email"))
         rec = create_record(
             "leads",
             {
@@ -1101,7 +1114,7 @@ def import_commit(body: ImportCommit, wid: str = Depends(workspace_id), user=Dep
                 "workspace_id": wid,
                 "name": mapped.get("name"),
                 "company": mapped.get("company"),
-                "email": email or None,
+                "email": email,
                 "phone": mapped.get("phone"),
                 "job_title": mapped.get("job_title"),
                 "website": mapped.get("website"),
@@ -1509,14 +1522,34 @@ def simulate_call(cid: str, body: SimulateCallIn, wid: str = Depends(workspace_i
     )
     sms_result = None
     if is_escalated:
-        from app.calendly_service import send_calendly_sms
-        sms_result = send_calendly_sms(
-            workspace_id=wid,
-            lead_id=lead["id"],
-            call_id=call["id"],
-            campaign_id=cid,
-            to_phone=lead.get("phone"),
-        )
+        # Auto-detect explicit callback time from the conversation. If the
+        # prospect named a time ("tomorrow at 11 am"), schedule via Calendly
+        # API (fires confirmation email) instead of sending a generic SMS link.
+        from app.voice import parse_callback_request
+        demo_prospect_text = " ".join(
+            (t.get("text") or "") for t in (result.get("history") or [])
+            if (t.get("speaker") or "") == "prospect"
+        ) or (script or "")
+        demo_parsed = parse_callback_request(demo_prospect_text) if demo_prospect_text else None
+        if demo_parsed:
+            from app.calendly_service import schedule_callback
+            sms_result = schedule_callback(
+                workspace_id=wid,
+                lead_id=lead["id"],
+                parsed=demo_parsed,
+                call_id=call["id"],
+                campaign_id=cid,
+                raw_user_text=demo_prospect_text,
+            )
+        else:
+            from app.calendly_service import send_calendly_sms
+            sms_result = send_calendly_sms(
+                workspace_id=wid,
+                lead_id=lead["id"],
+                call_id=call["id"],
+                campaign_id=cid,
+                to_phone=lead.get("phone"),
+            )
         call = get_by_id("calls", call["id"]) or call
     transcript = None
     nba = get_ai().next_best_action(result["qualification"], get_by_id("opportunities", lead.get("opportunity_id") or ""))
@@ -1869,11 +1902,51 @@ def _process_bolna_execution(payload: dict) -> dict | None:
                 "created_at": utcnow(),
             },
         )
+
+    # Detect explicit callback time in the transcript and schedule a Calendly booking.
+    # This overrides the generic opt-out above: a prospect who said "call me tomorrow at 11 am"
+    # is not opting out — they want a scheduled callback.
+    prospect_text = " ".join(
+        t.get("text", "") for t in (transcript_turns or []) if t.get("speaker") == "prospect"
+    )
+    from app.voice import parse_callback_request
+    parsed_time = parse_callback_request(prospect_text) if prospect_text else None
+    callback_result = None
+    if parsed_time and lead and interest_level != "Not Interested":
+        from app.calendly_service import schedule_callback
+        callback_result = schedule_callback(
+            workspace_id=wid,
+            lead_id=lead["id"],
+            parsed=parsed_time,
+            call_id=call["id"],
+            campaign_id=call.get("campaign_id"),
+            raw_user_text=prospect_text,
+        )
+        updates["outcome"] = "Callback Scheduled"
+        updates["requested_slot"] = parsed_time
+        # Roll back any opt-out row that was just created for this lead.
+        from app.store import filter_records as _fr, delete_record as _dr
+        for oo in _fr("opt_outs", lambda r: r.get("workspace_id") == wid and (
+            (lead.get("phone") and r.get("phone") == lead.get("phone"))
+            or (lead.get("email") and r.get("email") == lead.get("email"))
+        )):
+            _dr("opt_outs", oo["id"])
+        update_record("leads", lead["id"], {
+            "pipeline_stage": "callback_scheduled",
+            "intent_level": "Interested",
+            "qualification_status": "in_progress",
+            "last_updated": utcnow(),
+        })
+
     update_record("calls", call["id"], updates)
     _bump_analytics(wid, outcome, call.get("duration_sec") or 0)
+    final_outcome = updates.get("outcome") or outcome
     return {
         "call_id": call["id"],
-        "outcome": outcome,
+        "outcome": final_outcome,
+        "callback_scheduled": bool(callback_result),
+        "delivery_channel": (callback_result or {}).get("delivery_channel") if isinstance(callback_result, dict) else None,
+        "calendly_event_uri": (callback_result or {}).get("calendly_event_uri") if isinstance(callback_result, dict) else None,
         "transcript_id": transcript["id"] if transcript else None,
         "qualification_id": qualification["id"],
         "task_id": task["id"] if task else None,
@@ -1999,10 +2072,33 @@ def handoff(call_id: str, wid: str = Depends(workspace_id), user=Depends(current
         raise HTTPException(404, "Not found")
     update_record("calls", call_id, {"escalated": True, "stop_reason": "human_handoff"})
     lead = get_by_id("leads", c.get("lead_id"))
-    from app.calendly_service import send_calendly_sms
+
+    # If the transcript already contains a specific callback time, schedule that
+    # instead of sending a generic Calendly link.
+    transcript = next((t for t in by_workspace("transcripts", wid) if t.get("call_id") == call_id), None)
+    prospect_text = ""
+    if transcript:
+        prospect_text = " ".join(
+            (t.get("text") or "") for t in (transcript.get("turns") or []) if t.get("speaker") == "prospect"
+        )
+    from app.voice import parse_callback_request
+    parsed = parse_callback_request(prospect_text) if prospect_text else None
+
     sms_res = None
-    if lead:
+    if lead and parsed:
+        from app.calendly_service import schedule_callback
+        sms_res = schedule_callback(
+            workspace_id=wid,
+            lead_id=lead["id"],
+            parsed=parsed,
+            call_id=call_id,
+            campaign_id=c.get("campaign_id"),
+            raw_user_text=prospect_text,
+        )
+    elif lead:
+        from app.calendly_service import send_calendly_sms
         sms_res = send_calendly_sms(wid, lead["id"], call_id=call_id, campaign_id=c.get("campaign_id"), to_phone=lead.get("phone"))
+
     task = create_record(
         "tasks",
         {
@@ -2011,7 +2107,8 @@ def handoff(call_id: str, wid: str = Depends(workspace_id), user=Depends(current
             "title": f"Human handoff: {lead.get('company') if lead else 'prospect'}",
             "priority": "HIGH",
             "due": (datetime.now(timezone.utc) + timedelta(days=1)).date().isoformat(),
-            "reason": "Immediate human handoff requested. Calendly link texted to prospect.",
+            "reason": (f"Scheduled callback at {parsed['label']}. Calendly confirmation texted." if parsed
+                       else "Immediate human handoff requested. Calendly link texted to prospect."),
             "status": "open",
             "assignee": user.get("name"),
             "lead_id": c.get("lead_id"),
@@ -2019,7 +2116,7 @@ def handoff(call_id: str, wid: str = Depends(workspace_id), user=Depends(current
             "is_demo": True,
         },
     )
-    return {"call": get_by_id("calls", call_id), "task": task, "sms": sms_res}
+    return {"call": get_by_id("calls", call_id), "task": task, "sms": sms_res, "callback": parsed}
 
 
 @app.post("/api/v1/calls/{call_id}/opt-out")
@@ -2054,6 +2151,32 @@ class CalendlyRecallIn(BaseModel):
     campaign_id: str | None = None
     lead_id: str | None = None
     force_immediate: bool = True
+
+
+class CalendlyScheduleCallbackIn(BaseModel):
+    lead_id: str
+    time_text: str = Field(..., description="Free-form time mention like 'tomorrow at 11 am'")
+    call_id: str | None = None
+    campaign_id: str | None = None
+    specialist: str | None = None
+
+
+@app.get("/api/v1/calendly/config")
+def get_calendly_config(wid: str = Depends(workspace_id)):
+    """Returns the current Calendly configuration so the UI always shows correct URLs."""
+    from app.calendly_service import DEFAULT_LEAD_EMAIL, _get_calendly_url
+    from app.db import meta_get
+    booking_url = _get_calendly_url()
+    event_type_uri = meta_get("calendly_event_type_uri") or os.getenv("CALENDLY_EVENT_TYPE_URI", "")
+    token_set = bool(os.getenv("CALENDLY_ACCESS_TOKEN", ""))
+    webhook_secret_set = bool(os.getenv("CALENDLY_WEBHOOK_SECRET", ""))
+    return {
+        "booking_url": booking_url,
+        "event_type_uri": event_type_uri,
+        "has_access_token": token_set,
+        "has_webhook_secret": webhook_secret_set,
+        "default_email": DEFAULT_LEAD_EMAIL,
+    }
 
 
 @app.get("/api/v1/calendly/preferred-slots")
@@ -2133,15 +2256,33 @@ async def calendly_webhook(request: Request):
       }
     }
     """
-    import hmac, hashlib
+    import hmac, hashlib, time
     raw_body = await request.body()
 
-    # Optional signature verification (set CALENDLY_WEBHOOK_SECRET in .env)
+    # Signature verification per https://developer.calendly.com/api-docs/
+    # Header format: "t=<unix_ts>,v1=<hex_hmac_sha256>"
+    # Signed payload: "<t>.<raw_body>"  (t concatenated with "." + raw bytes)
+    # Replay window:  tolerance seconds (default 180s = 3 min, Calendly's example)
     secret = os.getenv("CALENDLY_WEBHOOK_SECRET", "")
     if secret:
-        sig = request.headers.get("Calendly-Webhook-Signature", "")
-        expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(expected, sig.split("v1=")[-1]):
+        sig_header = request.headers.get("Calendly-Webhook-Signature", "")
+        parts = dict(p.split("=", 1) for p in sig_header.split(",") if "=" in p)
+        t_str = parts.get("t", "")
+        v1 = parts.get("v1", "")
+        if not t_str or not v1:
+            raise HTTPException(403, "Invalid webhook signature header")
+
+        tolerance = int(os.getenv("CALENDLY_WEBHOOK_TOLERANCE_SECONDS", "180"))
+        try:
+            ts = int(t_str)
+        except ValueError:
+            raise HTTPException(403, "Invalid webhook signature timestamp")
+        if abs(int(time.time()) - ts) > tolerance:
+            raise HTTPException(403, "Webhook signature outside tolerance window")
+
+        signed_payload = t_str.encode("ascii") + b"." + raw_body
+        expected = hmac.new(secret.encode(), signed_payload, hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(expected, v1):
             raise HTTPException(403, "Invalid webhook signature")
 
     try:
@@ -2234,7 +2375,7 @@ def calendly_confirm_redirect(
     redirect_uri pointing back here. Also useful for manual QA / testing.
 
     Usage (embedded in SMS link):
-      https://calendly.com/northwind-digital/consultation
+      https://calendly.com/nanditkalaria27
         ?lead_id=lead_b435b37821
         &booking_ref=cal_bk_51f1a50f89
         &redirect_uri=https://your-api.com/api/v1/calendly/confirm
@@ -2597,6 +2738,45 @@ def api_track_and_recall(body: CalendlyRecallIn | None = None, wid: str = Depend
     force = body.force_immediate if body else True
     recalls = check_unbooked_and_recall(wid, campaign_id=cid, lead_id=lid, force_immediate=force, user=user)
     return {"ok": True, "recalls_executed": len(recalls), "recalls": recalls}
+
+
+@app.post("/api/v1/calendly/schedule-callback")
+def api_schedule_callback(body: CalendlyScheduleCallbackIn, wid: str = Depends(workspace_id)):
+    """
+    Manually schedule a callback for a lead at a user-entered time.
+    Uses schedule_callback(), which fires Calendly's built-in confirmation
+    email when CALENDLY_ACCESS_TOKEN + lead.email are available.
+    Falls back to Twilio SMS otherwise.
+    """
+    from app.voice import parse_callback_request
+    from app.calendly_service import schedule_callback
+    parsed = parse_callback_request(body.time_text)
+    if not parsed:
+        raise HTTPException(400, f"Could not parse a time from: {body.time_text!r}")
+    lead = get_by_id("leads", body.lead_id)
+    if not lead or lead.get("workspace_id") != wid:
+        raise HTTPException(404, "Lead not found")
+    res = schedule_callback(
+        workspace_id=wid,
+        lead_id=body.lead_id,
+        parsed=parsed,
+        call_id=body.call_id,
+        campaign_id=body.campaign_id,
+        specialist=body.specialist,
+        raw_user_text=body.time_text,
+    )
+    return {
+        "ok": True,
+        "delivery_channel": res.get("delivery_channel"),
+        "calendly_event_uri": res.get("calendly_event_uri"),
+        "calendly_link": res.get("calendly_link"),
+        "email": res.get("email"),
+        "phone": res.get("phone"),
+        "booking_id": res["booking"]["id"],
+        "parsed": parsed,
+        "booking": res["booking"],
+        "sms": res.get("sms"),
+    }
 
 
 @app.get("/api/v1/sms-logs")
