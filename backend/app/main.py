@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 import logging
+import os
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
@@ -1215,6 +1217,14 @@ def playground(aid: str, body: PlaygroundIn, wid: str = Depends(workspace_id)):
         history = [{"speaker": "agent", "text": opening_message(agent, body.language), "ts": utcnow()}]
     result = agent_reply(agent, body.message, history, body.language)
     result["label"] = "Demo Voice Simulation"
+    if result.get("escalated"):
+        from app.calendly_service import DEFAULT_CALENDLY_URL, PREFERRED_TIMESLOTS
+        result["calendly_sms"] = {
+            "sent": True,
+            "calendly_link": f"{DEFAULT_CALENDLY_URL}?demo=1",
+            "body": f"Hi! Here is the link to schedule your call with Northwind Digital's team: {DEFAULT_CALENDLY_URL}?demo=1 — select your preferred timeslot whenever you're ready!",
+            "preferred_slots": PREFERRED_TIMESLOTS,
+        }
     return result
 
 
@@ -1299,6 +1309,7 @@ HINT_SCRIPTS = {
     "Interested": "We are looking for SharePoint migration support and want to start this month.",
     "Escalated": "Please transfer me to a real person.",
     "Human Handoff": "Please transfer me to a real person.",
+    "Calendly Recall": "Hi, I have not booked a timeslot yet.",
 }
 
 
@@ -1381,6 +1392,9 @@ def simulate_call(cid: str, body: SimulateCallIn, wid: str = Depends(workspace_i
     elif hint in ("Escalated", "Human Handoff"):
         result = agent_reply(agent, "Please transfer me to a real person.", history, loc)
         result["outcome"] = "Escalated"
+    elif hint == "Calendly Recall":
+        result = agent_reply(agent, "calendly recall", history, loc)
+        result["outcome"] = "Connected"
     elif hint == "Connected":
         result = agent_reply(agent, "connected", history, loc)
         result["outcome"] = "Connected"
@@ -1388,6 +1402,7 @@ def simulate_call(cid: str, body: SimulateCallIn, wid: str = Depends(workspace_i
         result = agent_reply(agent, script, history, loc)
     outcome = result.get("outcome") or hint or "Connected"
     duration = 0 if outcome == "No Answer" else (8 if outcome == "Voicemail" else 42)
+    is_escalated = bool(result.get("escalated") or outcome == "Escalated" or hint in ("Escalated", "Human Handoff"))
     call = create_record(
         "calls",
         {
@@ -1403,17 +1418,30 @@ def simulate_call(cid: str, body: SimulateCallIn, wid: str = Depends(workspace_i
             "duration_sec": duration,
             "language": loc,
             "stop_reason": result.get("stop_reason") or ("no_answer" if outcome == "No Answer" else None),
-            "escalated": result.get("escalated") or outcome == "Escalated",
-            "escalated_at": utcnow() if (result.get("escalated") or outcome == "Escalated") else None,
-            "handoff_reason": "Prospect requested a human specialist" if outcome == "Escalated" else None,
+            "escalated": is_escalated,
+            "escalated_at": utcnow() if is_escalated else None,
+            "handoff_reason": "Prospect requested a human specialist" if is_escalated else None,
             "voicemail_message": (agent.get("approved_voicemail") or scripts(loc)["voicemail"]) if outcome == "Voicemail" else None,
             "voicemail_status": "left" if outcome == "Voicemail" else None,
             "callback_requested": outcome == "Callback Requested",
             "retry_eligible": outcome in ("No Answer", "Voicemail"),
+            "is_recall": hint == "Calendly Recall",
+            "recall_reason": "unbooked_calendly_link" if hint == "Calendly Recall" else None,
             "started_at": utcnow(),
             "is_demo": True,
         },
     )
+    sms_result = None
+    if is_escalated:
+        from app.calendly_service import send_calendly_sms
+        sms_result = send_calendly_sms(
+            workspace_id=wid,
+            lead_id=lead["id"],
+            call_id=call["id"],
+            campaign_id=cid,
+            to_phone=lead.get("phone"),
+        )
+        call = get_by_id("calls", call["id"]) or call
     transcript = None
     nba = get_ai().next_best_action(result["qualification"], get_by_id("opportunities", lead.get("opportunity_id") or ""))
     if outcome != "No Answer":
@@ -1525,6 +1553,9 @@ def simulate_call(cid: str, body: SimulateCallIn, wid: str = Depends(workspace_i
         "next_best_action": nba,
         "agent_turns": result["history"],
         "retry_eligible": outcome in ("No Answer", "Voicemail"),
+        "sms": sms_result.get("sms") if sms_result else None,
+        "calendly_booking": sms_result.get("booking") if sms_result else None,
+        "calendly_link": sms_result.get("calendly_link") if sms_result else None,
     }
 
 
@@ -1612,6 +1643,10 @@ def handoff(call_id: str, wid: str = Depends(workspace_id), user=Depends(current
         raise HTTPException(404, "Not found")
     update_record("calls", call_id, {"escalated": True, "stop_reason": "human_handoff"})
     lead = get_by_id("leads", c.get("lead_id"))
+    from app.calendly_service import send_calendly_sms
+    sms_res = None
+    if lead:
+        sms_res = send_calendly_sms(wid, lead["id"], call_id=call_id, campaign_id=c.get("campaign_id"), to_phone=lead.get("phone"))
     task = create_record(
         "tasks",
         {
@@ -1620,7 +1655,7 @@ def handoff(call_id: str, wid: str = Depends(workspace_id), user=Depends(current
             "title": f"Human handoff: {lead.get('company') if lead else 'prospect'}",
             "priority": "HIGH",
             "due": (datetime.now(timezone.utc) + timedelta(days=1)).date().isoformat(),
-            "reason": "Immediate human handoff requested.",
+            "reason": "Immediate human handoff requested. Calendly link texted to prospect.",
             "status": "open",
             "assignee": user.get("name"),
             "lead_id": c.get("lead_id"),
@@ -1628,7 +1663,7 @@ def handoff(call_id: str, wid: str = Depends(workspace_id), user=Depends(current
             "is_demo": True,
         },
     )
-    return {"call": get_by_id("calls", call_id), "task": task}
+    return {"call": get_by_id("calls", call_id), "task": task, "sms": sms_res}
 
 
 @app.post("/api/v1/calls/{call_id}/opt-out")
@@ -1640,6 +1675,577 @@ def opt_out(call_id: str, wid: str = Depends(workspace_id)):
     create_record("opt_outs", {"id": new_id("opt"), "workspace_id": wid, "phone": (lead or {}).get("phone"), "reason": "opt_out", "created_at": utcnow()})
     update_record("calls", call_id, {"stop_reason": "opt_out", "outcome": "Not Interested"})
     return {"ok": True}
+
+
+class CalendlySmsIn(BaseModel):
+    lead_id: str
+    call_id: str | None = None
+    campaign_id: str | None = None
+    phone: str | None = None
+    custom_link: str | None = None
+
+
+class CalendlyBookIn(BaseModel):
+    booking_id: str | None = None
+    lead_id: str | None = None
+    slot_id: str | None = None
+    slot_title: str | None = None
+    specialist: str | None = None
+    notes: str | None = ""
+
+
+class CalendlyRecallIn(BaseModel):
+    campaign_id: str | None = None
+    lead_id: str | None = None
+    force_immediate: bool = True
+
+
+@app.get("/api/v1/calendly/preferred-slots")
+def get_preferred_slots():
+    from app.calendly_service import get_preferred_timeslots
+    return get_preferred_timeslots()
+
+
+@app.get("/api/v1/calendly/bookings")
+def list_calendly_bookings(wid: str = Depends(workspace_id)):
+    return by_workspace("calendly_bookings", wid)
+
+
+@app.get("/api/v1/calendly/bookings/{bid}")
+def get_calendly_booking(bid: str, wid: str = Depends(workspace_id)):
+    b = get_by_id("calendly_bookings", bid)
+    if not b or b.get("workspace_id") != wid:
+        raise HTTPException(404, "Booking not found")
+    return b
+
+
+@app.post("/api/v1/calendly/send-sms")
+def api_send_calendly_sms(body: CalendlySmsIn, wid: str = Depends(workspace_id)):
+    from app.calendly_service import send_calendly_sms
+    return send_calendly_sms(
+        workspace_id=wid,
+        lead_id=body.lead_id,
+        call_id=body.call_id,
+        campaign_id=body.campaign_id,
+        to_phone=body.phone,
+        custom_link=body.custom_link,
+    )
+
+
+@app.post("/api/v1/calendly/book")
+def api_book_calendly_slot(body: CalendlyBookIn, wid: str = Depends(workspace_id), user=Depends(current_user)):
+    from app.calendly_service import complete_calendly_booking
+    return complete_calendly_booking(
+        workspace_id=wid,
+        booking_id=body.booking_id,
+        lead_id=body.lead_id,
+        slot_id=body.slot_id,
+        slot_title=body.slot_title,
+        specialist=body.specialist,
+        notes=body.notes or "",
+        user_name=user.get("name"),
+    )
+
+
+@app.post("/api/v1/calendly/webhook")
+async def calendly_webhook(request: Request):
+    """
+    Receives Calendly webhook events (invitee.created / invitee.canceled).
+
+    Real Calendly invitee.created payload shape:
+    {
+      "event": "invitee.created",
+      "payload": {
+        "event_type": { "name": "Northwind Consultation", "uri": "..." },
+        "event": {
+          "start_time": "2026-09-26T14:00:00Z",
+          "end_time":   "2026-09-26T14:30:00Z",
+          "uri": "..."
+        },
+        "invitee": {
+          "name": "John Smith",
+          "email": "john@acme.com",
+          "uri": "..."
+        },
+        "tracking": {
+          "utm_content": "<booking_ref>",   # we put booking_ref here
+          "utm_source":  "<lead_id>"
+        },
+        "questions_and_answers": [
+          { "question": "booking_ref", "answer": "<booking_ref>" }
+        ]
+      }
+    }
+    """
+    import hmac, hashlib
+    raw_body = await request.body()
+
+    # Optional signature verification (set CALENDLY_WEBHOOK_SECRET in .env)
+    secret = os.getenv("CALENDLY_WEBHOOK_SECRET", "")
+    if secret:
+        sig = request.headers.get("Calendly-Webhook-Signature", "")
+        expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(expected, sig.split("v1=")[-1]):
+            raise HTTPException(403, "Invalid webhook signature")
+
+    try:
+        payload = json.loads(raw_body)
+    except Exception:
+        raise HTTPException(400, "Invalid JSON")
+
+    event = payload.get("event", "")
+    data = payload.get("payload") or {}
+
+    # Workspace — prefer header, fall back to default
+    wid = request.headers.get("X-Workspace-Id") or "workspace_001"
+
+    if event not in ("invitee.created", "invitee.canceled"):
+        # Ignore other events (e.g. routing_form_submission)
+        return {"ok": True, "event": event, "action": "ignored"}
+
+    # ── Extract tracking params ──────────────────────────────────────────────
+    tracking  = data.get("tracking") or {}
+    questions = data.get("questions_and_answers") or []
+    q_map     = {q.get("question", "").lower(): q.get("answer", "") for q in questions}
+
+    # booking_ref: look in utm_content first, then questions, then utm_source
+    booking_ref = (
+        tracking.get("utm_content")
+        or q_map.get("booking_ref")
+        or q_map.get("booking ref")
+        or None
+    )
+    lead_id = (
+        tracking.get("utm_source")
+        or q_map.get("lead_id")
+        or q_map.get("lead id")
+        or None
+    )
+
+    # ── Event details ────────────────────────────────────────────────────────
+    event_info     = data.get("event") or {}
+    event_type     = data.get("event_type") or {}
+    invitee        = data.get("invitee") or {}
+
+    slot_title     = event_type.get("name") or "Northwind Digital Consultation"
+    start_time     = event_info.get("start_time") or ""
+    end_time       = event_info.get("end_time") or ""
+    if start_time:
+        slot_title = f"{slot_title} — {start_time[:16].replace('T', ' ')} UTC"
+
+    invitee_name   = invitee.get("name") or "Lead"
+    invitee_email  = invitee.get("email") or ""
+
+    # Specialist: try assigned_to, fall back to Sarah Jenkins
+    assigned_to    = (data.get("assigned_to") or [{}])[0] if data.get("assigned_to") else {}
+    specialist     = assigned_to.get("name") if isinstance(assigned_to, dict) else "Sarah Jenkins"
+    specialist     = specialist or "Sarah Jenkins"
+
+    from app.calendly_service import complete_calendly_booking
+
+    if event == "invitee.canceled":
+        # Mark booking as pending again so it can be re-recalled
+        if booking_ref:
+            from app.store import update_record as _upd
+            _upd("calendly_bookings", booking_ref, {
+                "status": "pending_booking",
+                "canceled_at": utcnow(),
+                "cancellation_reason": data.get("cancellation", {}).get("reason", "Canceled via Calendly"),
+            })
+        return {"ok": True, "event": event, "action": "reverted_to_pending"}
+
+    # invitee.created → mark as booked
+    result = complete_calendly_booking(
+        workspace_id=wid,
+        booking_id=booking_ref,
+        lead_id=lead_id,
+        slot_title=slot_title,
+        specialist=specialist,
+        notes=f"Booked via Calendly webhook. Invitee: {invitee_name} <{invitee_email}>. Start: {start_time}.",
+    )
+    return {"ok": True, "event": event, "action": "booking_confirmed", "booking_id": booking_ref, **result}
+
+
+@app.get("/api/v1/calendly/confirm")
+def calendly_confirm_redirect(
+    booking_ref: str | None = None,
+    lead_id: str | None = None,
+    slot_title: str | None = None,
+    specialist: str | None = None,
+):
+    """
+    Public GET endpoint — called when the Calendly booking link contains a
+    redirect_uri pointing back here. Also useful for manual QA / testing.
+
+    Usage (embedded in SMS link):
+      https://calendly.com/northwind-digital/consultation
+        ?lead_id=lead_b435b37821
+        &booking_ref=cal_bk_51f1a50f89
+        &redirect_uri=https://your-api.com/api/v1/calendly/confirm
+    """
+    from app.store import get_by_id as _gbi
+    wid = "workspace_001"  # public endpoint — use default workspace
+    if booking_ref:
+        bk = _gbi("calendly_bookings", booking_ref)
+        if bk:
+            wid = bk.get("workspace_id") or wid
+            lead_id = lead_id or bk.get("lead_id")
+    from app.calendly_service import complete_calendly_booking
+    result = complete_calendly_booking(
+        workspace_id=wid,
+        booking_id=booking_ref,
+        lead_id=lead_id,
+        slot_title=slot_title or "Northwind Digital Consultation",
+        specialist=specialist or "Sarah Jenkins",
+        notes="Booking confirmed via redirect link (post-Calendly scheduling).",
+    )
+    # Return a friendly HTML confirmation instead of JSON
+    from fastapi.responses import HTMLResponse
+    html = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Booking Confirmed – Northwind Digital</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+               background: #f0f4ff; display: flex; align-items: center;
+               justify-content: center; min-height: 100vh; margin: 0; }
+        .card { background: white; border-radius: 16px; padding: 40px 36px;
+                max-width: 440px; text-align: center; box-shadow: 0 8px 32px rgba(80,80,180,.10); }
+        .icon { font-size: 48px; margin-bottom: 16px; }
+        h1 { color: #1e293b; font-size: 22px; margin: 0 0 8px; }
+        p  { color: #64748b; font-size: 15px; line-height: 1.6; margin: 0 0 24px; }
+        .badge { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0;
+                 border-radius: 99px; display: inline-block; padding: 6px 16px;
+                 font-size: 13px; font-weight: 600; }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <div class="icon">🎉</div>
+        <h1>You're all set!</h1>
+        <p>Your consultation with the <strong>Northwind Digital</strong> team has been confirmed.
+           You'll receive a calendar invite shortly with the call details.</p>
+        <div class="badge">✓ Booking Confirmed</div>
+      </div>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html, status_code=200)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Calendly OAuth 2.0 — needed to get scheduled_events:read scope
+# (Standard PATs from the Calendly UI only grant webhooks:read + webhooks:write)
+#
+# Setup: Create an OAuth app at https://developer.calendly.com
+#   Redirect URI: http://localhost:8000/api/v1/calendly/oauth/callback
+#   Set CALENDLY_CLIENT_ID + CALENDLY_CLIENT_SECRET in .env
+# ──────────────────────────────────────────────────────────────────────────────
+
+@app.get("/api/v1/calendly/oauth/start")
+def calendly_oauth_start():
+    """
+    Redirect the browser here to begin Calendly OAuth.
+    Returns a redirect URL to send the user to Calendly for authorization.
+    """
+    from fastapi.responses import RedirectResponse
+    client_id = os.getenv("CALENDLY_CLIENT_ID", "")
+    if not client_id:
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(
+            "<h2>CALENDLY_CLIENT_ID not set in .env</h2>"
+            "<p>Create an OAuth app at <a href='https://developer.calendly.com'>developer.calendly.com</a> "
+            "then set CALENDLY_CLIENT_ID and CALENDLY_CLIENT_SECRET in .env</p>",
+            status_code=400,
+        )
+    redirect_uri = os.getenv("API_BASE_URL", "http://localhost:8000") + "/api/v1/calendly/oauth/callback"
+    auth_url = (
+        f"https://auth.calendly.com/oauth/authorize"
+        f"?client_id={client_id}"
+        f"&response_type=code"
+        f"&redirect_uri={redirect_uri}"
+    )
+    return RedirectResponse(url=auth_url)
+
+
+@app.get("/api/v1/calendly/oauth/callback")
+async def calendly_oauth_callback(code: str | None = None, error: str | None = None):
+    """
+    Calendly redirects here after the user authorizes the app.
+    Exchanges the code for an access token, then auto-registers the webhook.
+    """
+    import httpx
+    from fastapi.responses import HTMLResponse
+
+    if error or not code:
+        return HTMLResponse(f"<h2>OAuth Error: {error or 'No code returned'}</h2>", status_code=400)
+
+    client_id     = os.getenv("CALENDLY_CLIENT_ID", "")
+    client_secret = os.getenv("CALENDLY_CLIENT_SECRET", "")
+    redirect_uri  = os.getenv("API_BASE_URL", "http://localhost:8000") + "/api/v1/calendly/oauth/callback"
+
+    # Exchange code for access token
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        token_resp = await client.post(
+            "https://auth.calendly.com/oauth/token",
+            data={
+                "grant_type":    "authorization_code",
+                "code":          code,
+                "redirect_uri":  redirect_uri,
+                "client_id":     client_id,
+                "client_secret": client_secret,
+            },
+        )
+
+    if token_resp.status_code != 200:
+        return HTMLResponse(f"<h2>Token exchange failed: {token_resp.text}</h2>", status_code=400)
+
+    token_data   = token_resp.json()
+    access_token = token_data.get("access_token", "")
+    org_uri      = token_data.get("organization", "")
+    owner_uri    = token_data.get("owner", "")
+
+    # Persist token to .env
+    env_path = Path(__file__).parent.parent.parent / ".env"
+    try:
+        import re as _re
+        txt = env_path.read_text()
+        for key, val in [("CALENDLY_ACCESS_TOKEN", access_token)]:
+            if f"{key}=" in txt:
+                txt = _re.sub(rf"{key}=.*", f"{key}={val}", txt)
+            else:
+                txt += f"\n{key}={val}\n"
+        env_path.write_text(txt)
+        os.environ["CALENDLY_ACCESS_TOKEN"] = access_token
+    except Exception:
+        pass
+
+    # Auto-register the webhook with the full-scope token
+    api_host    = os.getenv("API_BASE_URL", "http://localhost:8000").rstrip("/")
+    webhook_url = f"{api_host}/api/v1/calendly/webhook"
+    headers     = {"Authorization": f"Bearer {access_token}", "Content-Type": "application/json"}
+
+    wh_result = {}
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        wh_resp = await client.post(
+            "https://api.calendly.com/webhook_subscriptions",
+            headers=headers,
+            json={
+                "url":          webhook_url,
+                "events":       ["invitee.created", "invitee.canceled"],
+                "organization": org_uri or owner_uri,
+                "user":         owner_uri,
+                "scope":        "user",
+            },
+        )
+        if wh_resp.status_code in (200, 201):
+            wh_result = wh_resp.json().get("resource", {})
+            signing_key = wh_result.get("signing_key", "")
+            if signing_key:
+                try:
+                    import re as _re2
+                    txt2 = env_path.read_text()
+                    if "CALENDLY_WEBHOOK_SECRET=" in txt2:
+                        txt2 = _re2.sub(r"CALENDLY_WEBHOOK_SECRET=.*", f"CALENDLY_WEBHOOK_SECRET={signing_key}", txt2)
+                    else:
+                        txt2 += f"\nCALENDLY_WEBHOOK_SECRET={signing_key}\n"
+                    env_path.write_text(txt2)
+                    os.environ["CALENDLY_WEBHOOK_SECRET"] = signing_key
+                except Exception:
+                    pass
+        wh_status  = wh_resp.status_code
+        wh_body    = wh_resp.text
+
+    success = wh_status in (200, 201)
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Calendly Connected – Northwind Digital</title>
+  <style>
+    body{{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+         background:#f0f4ff;display:flex;align-items:center;justify-content:center;
+         min-height:100vh;margin:0;}}
+    .card{{background:white;border-radius:16px;padding:40px 36px;max-width:480px;
+           text-align:center;box-shadow:0 8px 32px rgba(80,80,180,.10);}}
+    .icon{{font-size:48px;margin-bottom:16px;}}
+    h1{{color:#1e293b;font-size:22px;margin:0 0 8px;}}
+    p{{color:#64748b;font-size:14px;line-height:1.6;margin:0 0 20px;}}
+    .badge{{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;
+            border-radius:99px;display:inline-block;padding:6px 16px;
+            font-size:13px;font-weight:600;margin-bottom:16px;}}
+    .err{{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;
+          border-radius:8px;padding:12px;font-size:13px;margin-top:12px;text-align:left;}}
+    .meta{{background:#f8fafc;border-radius:8px;padding:12px;font-size:12px;
+           color:#64748b;text-align:left;margin-top:12px;}}
+    .btn{{display:inline-block;margin-top:16px;padding:10px 24px;
+          background:#6d28d9;color:white;border-radius:8px;text-decoration:none;
+          font-size:14px;font-weight:600;}}
+  </style>
+</head>
+<body><div class="card">
+  <div class="icon">{'🎉' if success else '⚠️'}</div>
+  <h1>{'Calendly Connected!' if success else 'OAuth Authorized – Webhook Issue'}</h1>
+  {'<div class="badge">✓ Access Token Saved</div>' if access_token else ''}
+  {'<div class="badge" style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe">✓ Webhook Registered</div>' if success else ''}
+  <p>
+    {'Your Calendly account is fully connected. The AI will now auto-confirm bookings when leads schedule via the texted link.' if success else
+     'Access token was saved. Webhook registration encountered an issue — check the error below.'}
+  </p>
+  {'<div class="err"><b>Webhook error:</b> ' + wh_body[:300] + '</div>' if not success else ''}
+  <div class="meta">
+    <b>Webhook URL:</b> {webhook_url}<br>
+    <b>Events:</b> invitee.created, invitee.canceled<br>
+    {'<b>Signing key:</b> saved to .env ✓' if success and wh_result.get('signing_key') else ''}
+  </div>
+  <a href="http://localhost:5173/app/calendly" class="btn">Back to Calendly Tracker →</a>
+</div></body></html>"""
+
+    return HTMLResponse(content=html, status_code=200)
+
+
+class CalendlyRegisterWebhookIn(BaseModel):
+    pat: str | None = None
+    webhook_url: str | None = None
+    user_uuid: str | None = None
+    org_uuid: str | None = None
+
+
+@app.post("/api/v1/calendly/register-webhook")
+async def register_calendly_webhook(body: CalendlyRegisterWebhookIn, wid: str = Depends(workspace_id)):
+    """
+    Auto-registers the Calendly webhook subscription using a PAT.
+    Required PAT scopes: webhooks:read, webhooks:write, scheduled_events:read
+    """
+    import httpx, base64
+
+    pat = body.pat or os.getenv("CALENDLY_PAT", "")
+    if not pat:
+        raise HTTPException(400, "No Calendly PAT provided.")
+
+    headers = {"Authorization": f"Bearer {pat}", "Content-Type": "application/json"}
+
+    # Decode user_uuid + scopes from JWT payload (no network call)
+    try:
+        parts = pat.split(".")
+        payload_b64 = parts[1] + "=" * (4 - len(parts[1]) % 4)
+        jwt_payload = json.loads(base64.urlsafe_b64decode(payload_b64))
+        user_uuid = body.user_uuid or jwt_payload.get("user_uuid")
+        current_scopes = jwt_payload.get("scope", "")
+    except Exception:
+        raise HTTPException(400, "Could not decode PAT JWT.")
+
+    # Check required scopes before making any API calls
+    needed = ["webhooks:read", "webhooks:write", "scheduled_events:read"]
+    missing = [s for s in needed if s not in current_scopes]
+    if missing:
+        return {
+            "ok": False,
+            "error": "insufficient_scopes",
+            "current_scopes": current_scopes,
+            "missing_scopes": missing,
+            "action_required": (
+                "Generate a new PAT at https://calendly.com/integrations/api_webhooks "
+                f"and include these scopes: {', '.join(missing)}"
+            ),
+        }
+
+    user_uri = f"https://api.calendly.com/users/{user_uuid}"
+    org_uuid = body.org_uuid
+
+    # Get organization URI from /users/me
+    if not org_uuid:
+        async with httpx.AsyncClient(timeout=8.0) as client:
+            me = await client.get("https://api.calendly.com/users/me", headers=headers)
+            if me.status_code == 200:
+                org_uri_full = me.json().get("resource", {}).get("current_organization", "")
+                org_uuid = org_uri_full.split("/")[-1] if org_uri_full else user_uuid
+            else:
+                org_uuid = user_uuid  # fallback: single-user org
+
+    org_uri = f"https://api.calendly.com/organizations/{org_uuid}"
+    api_host = (body.webhook_url or os.getenv("API_BASE_URL", "http://localhost:8000")).rstrip("/")
+    webhook_url = f"{api_host}/api/v1/calendly/webhook"
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        resp = await client.post(
+            "https://api.calendly.com/webhook_subscriptions",
+            headers=headers,
+            json={
+                "url": webhook_url,
+                "events": ["invitee.created", "invitee.canceled"],
+                "organization": org_uri,
+                "user": user_uri,
+                "scope": "user",
+            },
+        )
+
+    if resp.status_code not in (200, 201):
+        err = resp.json() if "application/json" in resp.headers.get("content-type", "") else {"raw": resp.text}
+        details = [d.get("message", "") for d in (err.get("details") or [])]
+        if any("missing required scope" in d for d in details):
+            return {
+                "ok": False,
+                "error": "insufficient_scopes",
+                "missing_scopes": details,
+                "action_required": (
+                    "Generate a new PAT at https://calendly.com/integrations/api_webhooks "
+                    "with scopes: webhooks:read + webhooks:write + scheduled_events:read"
+                ),
+            }
+        raise HTTPException(resp.status_code, str(err))
+
+    wh = resp.json().get("resource", {})
+    signing_key = wh.get("signing_key", "")
+
+    # Persist signing key to .env
+    env_path = Path(__file__).parent.parent.parent / ".env"
+    env_updated = False
+    try:
+        if env_path.exists() and signing_key:
+            import re as _re
+            txt = env_path.read_text()
+            if "CALENDLY_WEBHOOK_SECRET=" in txt:
+                txt = _re.sub(r"CALENDLY_WEBHOOK_SECRET=.*", f"CALENDLY_WEBHOOK_SECRET={signing_key}", txt)
+            else:
+                txt += f"\nCALENDLY_WEBHOOK_SECRET={signing_key}\n"
+            env_path.write_text(txt)
+            os.environ["CALENDLY_WEBHOOK_SECRET"] = signing_key
+            env_updated = True
+    except Exception:
+        pass
+
+    return {
+        "ok": True,
+        "webhook_uri": wh.get("uri"),
+        "webhook_url": webhook_url,
+        "events": wh.get("events"),
+        "signing_key": signing_key,
+        "signing_key_saved_to_env": env_updated,
+        "message": (
+            f"Webhook registered! Calendly will POST to {webhook_url} on invitee events. "
+            + ("Signing key saved to .env." if env_updated else "Copy signing_key to .env as CALENDLY_WEBHOOK_SECRET.")
+        ),
+    }
+
+
+@app.post("/api/v1/calendly/track-and-recall")
+def api_track_and_recall(body: CalendlyRecallIn | None = None, wid: str = Depends(workspace_id), user=Depends(current_user)):
+    from app.calendly_service import check_unbooked_and_recall
+    cid = body.campaign_id if body else None
+    lid = body.lead_id if body else None
+    force = body.force_immediate if body else True
+    recalls = check_unbooked_and_recall(wid, campaign_id=cid, lead_id=lid, force_immediate=force, user=user)
+    return {"ok": True, "recalls_executed": len(recalls), "recalls": recalls}
+
+
+@app.get("/api/v1/sms-logs")
+def list_sms_logs(wid: str = Depends(workspace_id)):
+    return by_workspace("sms_logs", wid)
 
 
 @app.get("/api/v1/tasks")

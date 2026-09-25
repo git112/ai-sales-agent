@@ -3,7 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { Search, Sparkles, Target, ArrowUpRight, Globe, Calendar, ShieldCheck, CheckCircle2, X, UserPlus, Check } from "lucide-react";
 import { api } from "../api";
 
+
 export default function Opportunities() {
+  const nav = useNavigate();
   const [q, setQ] = useState("Find companies looking for SharePoint implementation.");
   const [rows, setRows] = useState<any[]>([]);
   const [note, setNote] = useState("");
@@ -12,6 +14,7 @@ export default function Opportunities() {
   const [err, setErr] = useState("");
   const [addingLead, setAddingLead] = useState<string | null>(null);
   const [addedLeads, setAddedLeads] = useState<Record<string, string>>({});
+
 
   async function load() {
     const { data } = await api.get("/opportunities");

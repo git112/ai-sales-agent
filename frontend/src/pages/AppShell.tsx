@@ -17,7 +17,8 @@ import {
   Shield,
   LogOut,
   Compass,
-  ArrowRight
+  ArrowRight,
+  CalendarCheck2,
 } from "lucide-react";
 import { api, authStore } from "../api";
 import { useAuth } from "../auth";
@@ -29,6 +30,7 @@ const navItems = [
   { label: "Campaigns", to: "/app/campaigns", icon: Megaphone },
   { label: "Voice Agents", to: "/app/agents", icon: Bot },
   { label: "Calls", to: "/app/calls", icon: PhoneCall },
+  { label: "Calendly Tracker", to: "/app/calendly", icon: CalendarCheck2 },
   { label: "Tasks", to: "/app/tasks", icon: CheckSquare },
   { label: "AI Copilot", to: "/app/copilot", icon: Sparkles },
   { label: "Knowledge Base", to: "/app/knowledge", icon: BookOpen },

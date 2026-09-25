@@ -32,6 +32,8 @@ LIST_COLLECTIONS = [
     "market_signals",
     "audit_logs",
     "opt_outs",
+    "sms_logs",
+    "calendly_bookings",
 ]
 
 _lock = threading.RLock()

@@ -31,6 +31,7 @@ import Docs from "./pages/Docs";
 import Notifications from "./pages/Notifications";
 import Pricing from "./pages/Pricing";
 import Legal from "./pages/Legal";
+import CalendlyTracker from "./pages/CalendlyTracker";
 
 function Private({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -88,6 +89,7 @@ export default function App() {
         <Route path="radar" element={<Radar />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="notifications" element={<Notifications />} />
+        <Route path="calendly" element={<CalendlyTracker />} />
         <Route path="settings" element={<Settings />} />
       </Route>
       <Route

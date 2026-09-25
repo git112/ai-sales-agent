@@ -6,7 +6,11 @@ from app.store import utcnow
 
 HANDOFF = [
     "speak to a human", "transfer", "real person", "specialist please", "handoff",
-    "इंसान", "માનવ", "hablar con una persona", "transferir", "humano", "personne humaine",
+    "talk to a person", "talk to human", "speak with a person", "speak with human",
+    "human please", "connect me to human", "connect to someone", "book call with human",
+    "calendly", "schedule call with human", "human specialist", "speak with someone",
+    "talk to someone", "representative", "agent please", "speak to human",
+    "इंसान", "मानव", "बात करनी है", "hablar con una persona", "transferir", "humano", "personne humaine",
     "parler à un conseiller", "mensch", "weiterleiten", "mitarbeiter"
 ]
 OPT_OUT = [
@@ -38,7 +42,8 @@ SCRIPTS = {
         ),
         "callback": "I will schedule a callback with a human salesperson. When is a good time?",
         "not_interested": "Understood. I will stop outreach and add this number to the do-not-contact list. Thank you.",
-        "handoff": "I am connecting you with a human specialist. I will create a high-priority follow-up task now.",
+        "handoff": "I am connecting you with a human specialist. I have just texted you a Calendly link so you can directly select your preferred timeslot with our team.",
+        "calendly_recall": "Hello! I am following up from Northwind Digital. We noticed you had not picked a timeslot on the Calendly booking link we texted earlier. Would you like to schedule a time right now, or should I re-send the booking link?",
         "voicemail": "Hello, this is an AI assistant from Northwind Digital. Please call us back regarding SharePoint services at your earliest convenience.",
         "closing": "Thank you for your time. A human teammate will follow the next best action we captured.",
         "fallback": "I can help qualify SharePoint and Microsoft 365 needs using approved company information. What service are you looking for, and what is your timeline?",
@@ -55,7 +60,8 @@ SCRIPTS = {
         "interested": "धन्यवाद। मैंने SharePoint सहायता की उच्च-इंटेंट आवश्यकता दर्ज कर ली है। एक विशेषज्ञ मीटिंग और प्रस्ताव के लिए फॉलो-अप करेगा।",
         "callback": "मैं एक मानव सेल्सपर्सन के साथ कॉलबैक शेड्यूल करूँगी। अच्छा समय कब है?",
         "not_interested": "समझ गई। मैं आउटरीच रोक दूँगी और इस नंबर को डू-नॉट-कॉन्टैक्ट सूची में डाल दूँगी। धन्यवाद।",
-        "handoff": "मैं आपको एक मानव विशेषज्ञ से जोड़ रही हूँ। अभी एक उच्च-प्राथमिकता फॉलो-अप टास्क बनेगा।",
+        "handoff": "मैं आपको एक मानव विशेषज्ञ से जोड़ रही हूँ। मैंने आपके फोन पर Calendly लिंक के साथ टेक्स्ट संदेश भेज दिया है ताकि आप अपनी पसंद का समय चुन सकें।",
+        "calendly_recall": "नमस्ते! मैं नॉर्थविंड डिजिटल से फॉलो-अप कर रही हूँ। हमने देखा कि आपने पहले भेजे गए Calendly लिंक से स्लॉट बुक नहीं किया था। क्या आप अभी समय तय करना चाहेंगे?",
         "voicemail": "नमस्ते, मैं नॉर्थविंड डिजिटल की AI सहायक हूँ। कृपया SharePoint सेवाओं के बारे में हमें वापस कॉल करें।",
         "closing": "आपके समय के लिए धन्यवाद। अगली कार्रवाई एक मानव साथी पूरी करेगा।",
         "fallback": "मैं स्वीकृत जानकारी से SharePoint और Microsoft 365 जरूरतों को क्वालिफाई कर सकती हूँ। आप कौन सी सेवा चाहते हैं, और समयसीमा क्या है?",
@@ -72,7 +78,8 @@ SCRIPTS = {
         "interested": "આભાર. મેં SharePoint સપોર્ટની હાઇ-ઇન્ટેન્ટ જરૂરિયાત નોંધી છે. નિષ્ણાત મીટિંગ અને પ્રસ્તાવ માટે ફોલો-અપ કરશે.",
         "callback": "હું માનવ સેલ્સપર્સન સાથે કૉલબેક શેડ્યૂલ કરીશ. સારો સમય ક્યારે છે?",
         "not_interested": "સમજાયું. હું આઉટરીચ બંધ કરીશ અને આ નંબર ડુ-નોટ-કોન્ટેક્ટ યાદીમાં મૂકીશ. આભાર.",
-        "handoff": "હું તમને માનવ નિષ્ણાત સાથે જોડી રહી છું. હવે હાઇ-પ્રાયોરિટી ફોલો-અપ ટાસ્ક બનશે.",
+        "handoff": "હું તમને માનવ નિષ્ણાત સાથે જોડી રહી છું. મેં તમારા ફોન પર Calendly લિંક સાથે ટેક્સ્ટ મેસેજ મોકલ્યો છે જેથી તમે તમારી પસંદગીનો સમય પસંદ કરી શકો.",
+        "calendly_recall": "નમસ્તે! હું નોર્થવિન્ડ ડિજિટલથી ફોલો-અપ કરું છું. અમે જોયું કે તમે અગાઉ મોકલેલી Calendly લિંક પરથી સમય પસંદ કર્યો નથી. શું તમે અત્યારે સમય બુક કરવા માંગો છો?",
         "voicemail": "નમસ્તે, હું નોર્થવિન્ડ ડિજિટલની AI સહાયક છું. કૃપા કરી SharePoint સેવાઓ માટે પાછા કૉલ કરો.",
         "closing": "તમારા સમય બદલ આભાર. આગળની ક્રિયા માનવ સાથીદાર પૂર્ણ કરશે.",
         "fallback": "હું મંજૂર માહિતીથી SharePoint અને Microsoft 365 જરૂરિયાતો ક્વોલિફાય કરી શકું. તમે કઈ સેવા ઇચ્છો છો, અને સમયમર્યાદા શું છે?",
@@ -89,7 +96,8 @@ SCRIPTS = {
         "interested": "Muchas gracias. He registrado un requerimiento de alta prioridad. Un especialista se comunicará para coordinar reunión y propuesta.",
         "callback": "Programaré una llamada de seguimiento con un especialista humano. ¿Qué día y horario le conviene?",
         "not_interested": "Comprendido. Detendremos el contacto y registraré su número en la lista de no contactar. Muchas gracias.",
-        "handoff": "Le transferiré con un especialista humano inmediatamente. Estoy generando una tarea de seguimiento prioritaria.",
+        "handoff": "Le transferiré con un especialista humano inmediatamente. Le he enviado un mensaje de texto con nuestro enlace de Calendly para que pueda reservar su horario preferido.",
+        "calendly_recall": "Hola, le hablo de Northwind Digital. Notamos que aún no ha seleccionado un horario en el enlace de Calendly que le enviamos. ¿Desea coordinar el horario ahora mismo?",
         "voicemail": "Hola, le saluda el asistente virtual de Northwind Digital. Por favor comuníquese con nosotros acerca de servicios de SharePoint.",
         "closing": "Gracias por su tiempo. Un integrante de nuestro equipo avanzará con la acción acordada.",
         "fallback": "¿Qué servicio específico de SharePoint o Microsoft 365 necesita y en qué fecha proyectan iniciar?",
@@ -106,7 +114,8 @@ SCRIPTS = {
         "interested": "Merci beaucoup. J'ai bien noté votre fort intérêt. Un spécialiste vous recontactera rapidement pour organiser une présentation.",
         "callback": "Je planifie un rappel par un commercial humain. Quel moment vous conviendrait le mieux ?",
         "not_interested": "Bien noté. Nous stoppons toute démarche et ajoutons vos coordonnées à notre liste d'exclusion. Merci.",
-        "handoff": "Je vous transfère vers un conseiller humain immédiatement. Une action prioritaire vient d'être créée.",
+        "handoff": "Je vous transfère vers un conseiller humain immédiatement. Je viens de vous envoyer un SMS avec notre lien Calendly afin que vous puissiez réserver votre créneau préféré.",
+        "calendly_recall": "Bonjour, je vous recontacte de la part de Northwind Digital. Nous avons remarqué que vous n'avez pas encore choisi de créneau sur le lien Calendly envoyé. Souhaitez-vous planifier maintenant ?",
         "voicemail": "Bonjour, ici l'assistant de Northwind Digital. N'hésitez pas à nous rappeler pour tout sujet SharePoint.",
         "closing": "Merci pour votre temps. Notre équipe assurera le suivi de votre dossier.",
         "fallback": "De quelle prestation SharePoint ou Microsoft 365 avez-vous besoin, et sous quelle échéance ?",
@@ -123,7 +132,8 @@ SCRIPTS = {
         "interested": "Vielen Dank! Ich habe Ihr konkretes Interesse erfasst. Ein Spezialist wird sich zur Terminabsprache bei Ihnen melden.",
         "callback": "Ich plane gerne einen Rückruf durch einen Vertriebsmitarbeiter ein. Welcher Zeitpunkt passt Ihnen am besten?",
         "not_interested": "Verstanden. Wir beenden die Kontaktaufnahme und setzen Ihre Rufnummer auf unsere Sperrliste. Vielen Dank.",
-        "handoff": "Ich leite Sie direkt an einen menschlichen Spezialisten weiter. Eine Prioritätsaufgabe wurde angelegt.",
+        "handoff": "Ich leite Sie direkt an einen menschlichen Spezialisten weiter. Ich habe Ihnen soeben eine SMS mit unserem Calendly-Link gesendet, damit Sie Ihren Wunschtermin auswählen können.",
+        "calendly_recall": "Guten Tag, hier ist Northwind Digital für eine kurze Rückfrage. Sie hatten noch keinen Termin über den gesendeten Calendly-Link gebucht. Möchten Sie den Termin direkt jetzt abstimmen?",
         "voicemail": "Guten Tag, hier ist der digitale Assistent von Northwind Digital. Bitte rufen Sie uns bezüglich SharePoint-Services zurück.",
         "closing": "Vielen Dank für Ihre Zeit. Ein Kollege wird die nächsten Schritte für Sie koordinieren.",
         "fallback": "Welche Unterstützung bei SharePoint oder Microsoft 365 benötigen Sie und welcher Zeitrahmen ist geplant?",
@@ -192,6 +202,10 @@ def agent_reply(agent: dict, user_text: str, history: list[dict], locale: str = 
         escalated = True
         outcome = "Escalated"
         interest = "Callback"
+    elif "calendly recall" in t or "unbooked" in t or "haven't booked" in t or "schedule a time now" in t or "resend the link" in t:
+        reply = s.get("calendly_recall") or s["handoff"]
+        outcome = "Connected"
+        interest = "Interested"
     elif "internal it" in t or "we already have" in t:
         reply = s["internal_it"]
         outcome = "Connected"
